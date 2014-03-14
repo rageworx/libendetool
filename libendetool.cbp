@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="libendetool" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="libendetool" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj\Debug\" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="libendetool" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj\Release\" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="src" />
+			<Add directory="src\aes256" />
+			<Add directory="src\base64" />
+			<Add directory="src\lzmat" />
+		</Compiler>
+		<Unit filename="src\aes256\aes256.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\aes256\aes256.h" />
+		<Unit filename="src\aes256\back2def.h" />
+		<Unit filename="src\base64\base64.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\base64\base64.h" />
+		<Unit filename="src\endetool.cpp" />
+		<Unit filename="src\endetool.h" />
+		<Unit filename="src\lzmat\lzmat.h" />
+		<Unit filename="src\lzmat\lzmat_dec.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\lzmat\lzmat_enc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
