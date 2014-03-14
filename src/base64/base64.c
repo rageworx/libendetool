@@ -1,5 +1,5 @@
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 #include "base64.h"
 
 /*------ Base64 Encoding Table ------*/

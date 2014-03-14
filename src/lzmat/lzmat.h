@@ -96,7 +96,7 @@ MP_U32 lzmat_dictionary_size(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
-#endif
+#endif /// of extern "C"
 
 // Error codes
 #define LZMAT_STATUS_OK 0
