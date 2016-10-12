@@ -156,10 +156,17 @@ void EnDeTool::text( const char* srctext )
 
     int srclen = strlen( srctext ) + 1;
     origintext = new char[ srclen ];
-    memset( origintext, 0, srclen );
-    strcpy( origintext, srctext );
+    if ( origintext != NULL )
+    {
+        memset( origintext, 0, srclen );
+        strcpy( origintext, srctext );
 
-    isencoded = encode();
+        isencoded = encode();
+    }
+    else
+    {
+        isencoded = false;
+    }
 }
 
 void EnDeTool::encodedtext( const char* srctext )
@@ -175,10 +182,13 @@ void EnDeTool::encodedtext( const char* srctext )
 
     int srclen = strlen( srctext ) + 1;
     encrypttext = new char[ srclen ];
-    memset( encrypttext, 0, srclen );
-    strcpy( encrypttext, srctext );
+    if ( encrypttext != NULL )
+    {
+        memset( encrypttext, 0, srclen );
+        strcpy( encrypttext, srctext );
 
-    decode();
+        decode();
+    }
 }
 
 void EnDeTool::cryptkey( const char* key )
@@ -223,9 +233,13 @@ bool EnDeTool::encode()
 
     // AES-256 encodes 16 bytes in once.
     // Make buffer pads with 16 multiply.
-    if ( ( tmpCiperLen > 16 ) && ( ( tmpCiperLen % 16 ) != 0 ) )
+    //if ( ( tmpCiperLen > 16 ) && ( ( tmpCiperLen % 16 ) != 0 ) )
+    if ( tmpCiperLen > 16 )
     {
-        tmpCiperLen += 16 - ( tmpCiperLen % 16 );
+        if ( ( tmpCiperLen % 16 ) != 0 )
+        {
+            tmpCiperLen += 16 - ( tmpCiperLen % 16 );
+        }
     }
     else
     {
@@ -233,31 +247,38 @@ bool EnDeTool::encode()
         tmpCiperLen = 16;
     }
 
-    char* tmpCiperBuff = new char[ tmpCiperLen + 1 ];
-    memset( tmpCiperBuff, 0, tmpCiperLen + 1 );
-    memcpy( tmpCiperBuff, origintext, srcLen );
-
-    int encloop = tmpCiperLen / 16;
-    if ( encloop == 0 )
-    {
-        encloop = 1;
-    }
-
-    for ( int cnt=0; cnt<encloop; cnt++ )
-    {
-        aes256_encrypt_ecb( actx, (unsigned char*)&tmpCiperBuff[ cnt * 16 ] );
-    }
-
-    aes256_done( actx );
-
-    int outBase64Len = tmpCiperLen * 2;
-
+    int retI = 0;
     char* tmpBase64Buff = NULL;
+    char* tmpCiperBuff = new char[ tmpCiperLen + 1 ];
+    if ( tmpCiperBuff != NULL )
+    {
+        memset( tmpCiperBuff, 0, tmpCiperLen + 1 );
+        memcpy( tmpCiperBuff, origintext, srcLen );
 
-    int retI = base64_encode( tmpCiperBuff, tmpCiperLen, &tmpBase64Buff );
+        int encloop = tmpCiperLen / 16;
+        if ( encloop == 0 )
+        {
+            encloop = 1;
+        }
 
-    delete[] tmpCiperBuff;
-    tmpCiperBuff = NULL;
+        for ( int cnt=0; cnt<encloop; cnt++ )
+        {
+            aes256_encrypt_ecb( actx, (unsigned char*)&tmpCiperBuff[ cnt * 16 ] );
+        }
+
+        aes256_done( actx );
+
+        int outBase64Len = tmpCiperLen * 2;
+
+        retI = base64_encode( tmpCiperBuff, tmpCiperLen, &tmpBase64Buff );
+
+        delete[] tmpCiperBuff;
+        tmpCiperBuff = NULL;
+    }
+    else
+    {
+        return false;
+    }
 
     if ( ( retI > 0 ) && ( tmpBase64Buff != NULL ) )
     {
@@ -272,6 +293,10 @@ bool EnDeTool::encode()
         {
             memset( encrypttext, 0, retI + 1 );
             strncpy( encrypttext, tmpBase64Buff, retI );
+        }
+        else
+        {
+            return false;
         }
 
         free( tmpBase64Buff );
@@ -302,6 +327,10 @@ bool EnDeTool::decode()
         return false;
 
     char* tmpCiperBuff = new char[ tmpCiperLen + 1 ];
+
+    if ( tmpCiperBuff == NULL )
+        return false;
+
     memset( tmpCiperBuff, 0, tmpCiperLen + 1 );
     int retI = base64_decode( encrypttext, (unsigned char*)tmpCiperBuff, tmpCiperLen );
     if ( retI == 0 )
