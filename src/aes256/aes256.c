@@ -4,71 +4,103 @@
 #define F(x)   (((x)<<1) ^ ((((x)>>7) & 1) * 0x1b))
 #define FD(x)  (((x) >> 1) ^ (((x) & 1) ? 0x8d : 0))
 
+#define BACK_TO_TABLES
+
+static uint8_t rj_xtime(uint8_t);
+static void aes_subBytes(uint8_t *);
+static void aes_subBytes_inv(uint8_t *);
+static void aes_addRoundKey(uint8_t *, uint8_t *);
+static void aes_addRoundKey_cpy(uint8_t *, uint8_t *, uint8_t *);
+static void aes_shiftRows(uint8_t *);
+static void aes_shiftRows_inv(uint8_t *);
+static void aes_mixColumns(uint8_t *);
+static void aes_mixColumns_inv(uint8_t *);
+static void aes_expandEncKey(uint8_t *, uint8_t *);
+static void aes_expandDecKey(uint8_t *, uint8_t *);
+
 #ifndef BACK_TO_TABLES
+static uint8_t gf_alog(uint8_t);
+static uint8_t gf_log(uint8_t);
+static uint8_t gf_mulinv(uint8_t);
+static uint8_t rj_sbox(uint8_t);
+static uint8_t rj_sbox_inv(uint8_t);
+#endif
+
+#ifndef BACK_TO_TABLES
+
 /* -------------------------------------------------------------------------- */
-uint8_t gf_alog(uint8_t x) // calculate anti-logarithm gen 3
+static uint8_t gf_alog(uint8_t x) // calculate anti-logarithm gen 3
 {
-    uint8_t atb = 1, z;
+    uint8_t y = 1, i;
 
-    while (x--) {z = atb; atb <<= 1; if (z & 0x80) atb^= 0x1b; atb ^= z;}
+    for (i = 0; i < x; i++) y ^= rj_xtime(y);
 
-    return atb;
+    return y;
 } /* gf_alog */
 
 /* -------------------------------------------------------------------------- */
-uint8_t gf_log(uint8_t x) // calculate logarithm gen 3
+static uint8_t gf_log(uint8_t x) // calculate logarithm gen 3
 {
-    uint8_t atb = 1, i = 0, z;
+    uint8_t y, i = 0;
 
-    do {
-        if (atb == x) break;
-        z = atb; atb <<= 1; if (z & 0x80) atb^= 0x1b; atb ^= z;
-    } while (++i > 0);
+    if (x)
+        for (i = 1, y = 1; i > 0; i++ )
+        {
+            y ^= rj_xtime(y);
+            if (y == x) break;
+        }
 
     return i;
 } /* gf_log */
 
 
 /* -------------------------------------------------------------------------- */
-uint8_t gf_mulinv(uint8_t x) // calculate multiplicative inverse
+static uint8_t gf_mulinv(uint8_t x) // calculate multiplicative inverse
 {
     return (x) ? gf_alog(255 - gf_log(x)) : 0;
 } /* gf_mulinv */
 
 /* -------------------------------------------------------------------------- */
-uint8_t rj_sbox(uint8_t x)
+static uint8_t rj_sbox(uint8_t x)
 {
     uint8_t y, sb;
 
     sb = y = gf_mulinv(x);
-    y = (y<<1)|(y>>7); sb ^= y;  y = (y<<1)|(y>>7); sb ^= y; 
-    y = (y<<1)|(y>>7); sb ^= y;  y = (y<<1)|(y>>7); sb ^= y;
+    y = (uint8_t)(y << 1) | (y >> 7), sb ^= y;
+    y = (uint8_t)(y << 1) | (y >> 7), sb ^= y;
+    y = (uint8_t)(y << 1) | (y >> 7), sb ^= y;
+    y = (uint8_t)(y << 1) | (y >> 7), sb ^= y;
 
     return (sb ^ 0x63);
 } /* rj_sbox */
 
 /* -------------------------------------------------------------------------- */
-uint8_t rj_sbox_inv(uint8_t x)
+static uint8_t rj_sbox_inv(uint8_t x)
 {
     uint8_t y, sb;
 
     y = x ^ 0x63;
-    sb = y = (y<<1)|(y>>7);
-    y = (y<<2)|(y>>6); sb ^= y; y = (y<<3)|(y>>5); sb ^= y;
+    sb = y = (uint8_t)(y << 1) | (y >> 7);
+    y = (uint8_t)(y << 2) | (y >> 6);
+    sb ^= y;
+    y = (uint8_t)(y << 3) | (y >> 5);
+    sb ^= y;
 
     return gf_mulinv(sb);
 } /* rj_sbox_inv */
 
+
 #endif /// of BACK_TO_TABLES
 
 /* -------------------------------------------------------------------------- */
-uint8_t rj_xtime(uint8_t x) 
+static uint8_t rj_xtime(uint8_t x)
 {
-    return (x & 0x80) ? ((x << 1) ^ 0x1b) : (x << 1);
+    uint8_t y = (uint8_t)(x << 1);
+    return (x & 0x80) ? (y ^ 0x1b) : y;
 } /* rj_xtime */
 
 /* -------------------------------------------------------------------------- */
-void aes_subBytes(uint8_t *buf)
+static void aes_subBytes(uint8_t *buf)
 {
     register uint8_t i = 16;
 
@@ -76,7 +108,7 @@ void aes_subBytes(uint8_t *buf)
 } /* aes_subBytes */
 
 /* -------------------------------------------------------------------------- */
-void aes_subBytes_inv(uint8_t *buf)
+static void aes_subBytes_inv(uint8_t *buf)
 {
     register uint8_t i = 16;
 
@@ -84,7 +116,7 @@ void aes_subBytes_inv(uint8_t *buf)
 } /* aes_subBytes_inv */
 
 /* -------------------------------------------------------------------------- */
-void aes_addRoundKey(uint8_t *buf, uint8_t *key)
+static void aes_addRoundKey(uint8_t *buf, uint8_t *key)
 {
     register uint8_t i = 16;
 
@@ -92,49 +124,54 @@ void aes_addRoundKey(uint8_t *buf, uint8_t *key)
 } /* aes_addRoundKey */
 
 /* -------------------------------------------------------------------------- */
-void aes_addRoundKey_cpy(uint8_t *buf, uint8_t *key, uint8_t *cpk)
+static void aes_addRoundKey_cpy(uint8_t *buf, uint8_t *key, uint8_t *cpk)
 {
     register uint8_t i = 16;
 
-    while (i--)  buf[i] ^= (cpk[i] = key[i]), cpk[16+i] = key[16 + i];
+    while (i--)  buf[i] ^= (cpk[i] = key[i]), cpk[16 + i] = key[16 + i];
 } /* aes_addRoundKey_cpy */
 
 
 /* -------------------------------------------------------------------------- */
-void aes_shiftRows(uint8_t *buf)
+static void aes_shiftRows(uint8_t *buf)
 {
     register uint8_t i, j; /* to make it potentially parallelable :) */
 
-    i = buf[1]; buf[1] = buf[5]; buf[5] = buf[9]; buf[9] = buf[13]; buf[13] = i;
-    i = buf[10]; buf[10] = buf[2]; buf[2] = i;
-    j = buf[3]; buf[3] = buf[15]; buf[15] = buf[11]; buf[11] = buf[7]; buf[7] = j;
-    j = buf[14]; buf[14] = buf[6]; buf[6]  = j;
+    i = buf[1], buf[1] = buf[5], buf[5] = buf[9], buf[9] = buf[13], buf[13] = i;
+    i = buf[10], buf[10] = buf[2], buf[2] = i;
+    j = buf[3], buf[3] = buf[15], buf[15] = buf[11], buf[11] = buf[7], buf[7] = j;
+    j = buf[14], buf[14] = buf[6], buf[6]  = j;
 
 } /* aes_shiftRows */
 
 /* -------------------------------------------------------------------------- */
-void aes_shiftRows_inv(uint8_t *buf)
+static void aes_shiftRows_inv(uint8_t *buf)
 {
     register uint8_t i, j; /* same as above :) */
 
-    i = buf[1]; buf[1] = buf[13]; buf[13] = buf[9]; buf[9] = buf[5]; buf[5] = i;
-    i = buf[2]; buf[2] = buf[10]; buf[10] = i;
-    j = buf[3]; buf[3] = buf[7]; buf[7] = buf[11]; buf[11] = buf[15]; buf[15] = j;
-    j = buf[6]; buf[6] = buf[14]; buf[14] = j;
+    i = buf[1], buf[1] = buf[13], buf[13] = buf[9], buf[9] = buf[5], buf[5] = i;
+    i = buf[2], buf[2] = buf[10], buf[10] = i;
+    j = buf[3], buf[3] = buf[7], buf[7] = buf[11], buf[11] = buf[15], buf[15] = j;
+    j = buf[6], buf[6] = buf[14], buf[14] = j;
 
 } /* aes_shiftRows_inv */
 
 /* -------------------------------------------------------------------------- */
-void aes_mixColumns(uint8_t *buf)
+static void aes_mixColumns(uint8_t *buf)
 {
     register uint8_t i, a, b, c, d, e;
 
     for (i = 0; i < 16; i += 4)
     {
-        a = buf[i]; b = buf[i + 1]; c = buf[i + 2]; d = buf[i + 3];
+        a = buf[i];
+        b = buf[i + 1];
+        c = buf[i + 2];
+        d = buf[i + 3];
         e = a ^ b ^ c ^ d;
-        buf[i] ^= e ^ rj_xtime(a^b);   buf[i+1] ^= e ^ rj_xtime(b^c);
-        buf[i+2] ^= e ^ rj_xtime(c^d); buf[i+3] ^= e ^ rj_xtime(d^a);
+        buf[i] ^= e ^ rj_xtime(a ^ b);
+        buf[i + 1] ^= e ^ rj_xtime(b ^ c);
+        buf[i + 2] ^= e ^ rj_xtime(c ^ d);
+        buf[i + 3] ^= e ^ rj_xtime(d ^ a);
     }
 } /* aes_mixColumns */
 
@@ -145,17 +182,23 @@ void aes_mixColumns_inv(uint8_t *buf)
 
     for (i = 0; i < 16; i += 4)
     {
-        a = buf[i]; b = buf[i + 1]; c = buf[i + 2]; d = buf[i + 3];
+        a = buf[i];
+        b = buf[i + 1];
+        c = buf[i + 2];
+        d = buf[i + 3];
         e = a ^ b ^ c ^ d;
         z = rj_xtime(e);
-        x = e ^ rj_xtime(rj_xtime(z^a^c));  y = e ^ rj_xtime(rj_xtime(z^b^d));
-        buf[i] ^= x ^ rj_xtime(a^b);   buf[i+1] ^= y ^ rj_xtime(b^c);
-        buf[i+2] ^= x ^ rj_xtime(c^d); buf[i+3] ^= y ^ rj_xtime(d^a);
+        x = e ^ rj_xtime(rj_xtime(z ^ a ^ c));
+        y = e ^ rj_xtime(rj_xtime(z ^ b ^ d));
+        buf[i] ^= x ^ rj_xtime(a ^ b);
+        buf[i + 1] ^= y ^ rj_xtime(b ^ c);
+        buf[i + 2] ^= x ^ rj_xtime(c ^ d);
+        buf[i + 3] ^= y ^ rj_xtime(d ^ a);
     }
 } /* aes_mixColumns_inv */
 
 /* -------------------------------------------------------------------------- */
-void aes_expandEncKey(uint8_t *k, uint8_t *rc) 
+static void aes_expandEncKey(uint8_t *k, uint8_t *rc)
 {
     register uint8_t i;
 
@@ -163,35 +206,35 @@ void aes_expandEncKey(uint8_t *k, uint8_t *rc)
     k[1] ^= rj_sbox(k[30]);
     k[2] ^= rj_sbox(k[31]);
     k[3] ^= rj_sbox(k[28]);
-    *rc = F( *rc);
+    *rc = rj_xtime( *rc);
 
-    for(i = 4; i < 16; i += 4)  k[i] ^= k[i-4],   k[i+1] ^= k[i-3],
-        k[i+2] ^= k[i-2], k[i+3] ^= k[i-1];
+    for(i = 4; i < 16; i += 4)  k[i] ^= k[i - 4],   k[i + 1] ^= k[i - 3],
+                                            k[i + 2] ^= k[i - 2], k[i + 3] ^= k[i - 1];
     k[16] ^= rj_sbox(k[12]);
     k[17] ^= rj_sbox(k[13]);
     k[18] ^= rj_sbox(k[14]);
     k[19] ^= rj_sbox(k[15]);
 
-    for(i = 20; i < 32; i += 4) k[i] ^= k[i-4],   k[i+1] ^= k[i-3],
-        k[i+2] ^= k[i-2], k[i+3] ^= k[i-1];
+    for(i = 20; i < 32; i += 4) k[i] ^= k[i - 4],   k[i + 1] ^= k[i - 3],
+                                            k[i + 2] ^= k[i - 2], k[i + 3] ^= k[i - 1];
 
 } /* aes_expandEncKey */
 
 /* -------------------------------------------------------------------------- */
-void aes_expandDecKey(uint8_t *k, uint8_t *rc) 
+void aes_expandDecKey(uint8_t *k, uint8_t *rc)
 {
     uint8_t i;
 
-    for(i = 28; i > 16; i -= 4) k[i+0] ^= k[i-4], k[i+1] ^= k[i-3], 
-        k[i+2] ^= k[i-2], k[i+3] ^= k[i-1];
+    for(i = 28; i > 16; i -= 4) k[i + 0] ^= k[i - 4], k[i + 1] ^= k[i - 3],
+                                                k[i + 2] ^= k[i - 2], k[i + 3] ^= k[i - 1];
 
     k[16] ^= rj_sbox(k[12]);
     k[17] ^= rj_sbox(k[13]);
     k[18] ^= rj_sbox(k[14]);
     k[19] ^= rj_sbox(k[15]);
 
-    for(i = 12; i > 0; i -= 4)  k[i+0] ^= k[i-4], k[i+1] ^= k[i-3],
-        k[i+2] ^= k[i-2], k[i+3] ^= k[i-1];
+    for(i = 12; i > 0; i -= 4)  k[i + 0] ^= k[i - 4], k[i + 1] ^= k[i - 3],
+                                                k[i + 2] ^= k[i - 2], k[i + 3] ^= k[i - 1];
 
     *rc = FD(*rc);
     k[0] ^= rj_sbox(k[29]) ^ (*rc);
@@ -208,7 +251,7 @@ void aes256_init(aes256_context *ctx, uint8_t *k)
     register uint8_t i;
 
     for (i = 0; i < sizeof(ctx->key); i++) ctx->enckey[i] = ctx->deckey[i] = k[i];
-    for (i = 8;--i;) aes_expandEncKey(ctx->deckey, &rcon);
+    for (i = 8; --i;) aes_expandEncKey(ctx->deckey, &rcon);
 } /* aes256_init */
 
 /* -------------------------------------------------------------------------- */
@@ -216,7 +259,7 @@ void aes256_done(aes256_context *ctx)
 {
     register uint8_t i;
 
-    for (i = 0; i < sizeof(ctx->key); i++) 
+    for (i = 0; i < sizeof(ctx->key); i++)
         ctx->key[i] = ctx->enckey[i] = ctx->deckey[i] = 0;
 } /* aes256_done */
 
@@ -236,7 +279,7 @@ void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
     }
     aes_subBytes(buf);
     aes_shiftRows(buf);
-    aes_expandEncKey(ctx->key, &rcon); 
+    aes_expandEncKey(ctx->key, &rcon);
     aes_addRoundKey(buf, ctx->key);
 } /* aes256_encrypt */
 
@@ -251,7 +294,7 @@ void aes256_decrypt_ecb(aes256_context *ctx, uint8_t *buf)
 
     for (i = 14, rcon = 0x80; --i;)
     {
-        if( ( i & 1 ) )           
+        if( ( i & 1 ) )
         {
             aes_expandDecKey(ctx->key, &rcon);
             aes_addRoundKey(buf, &ctx->key[16]);
@@ -261,5 +304,5 @@ void aes256_decrypt_ecb(aes256_context *ctx, uint8_t *buf)
         aes_shiftRows_inv(buf);
         aes_subBytes_inv(buf);
     }
-    aes_addRoundKey( buf, ctx->key); 
+    aes_addRoundKey( buf, ctx->key);
 } /* aes256_decrypt */
