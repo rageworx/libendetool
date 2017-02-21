@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
@@ -20,7 +20,8 @@
 			OutputDirectory="$(SolutionDir)\Lib\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
+			ManagedExtensions="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -39,14 +40,15 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
 				Optimization="0"
 				AdditionalIncludeDirectories="../src;../src/aes256;../src/base64;../src/lzmat"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				ObjectFile="$(IntDir)\..\Lib"
+				MinimalRebuild="false"
+				BasicRuntimeChecks="0"
+				RuntimeLibrary="0"
+				ObjectFile="$(IntDir)\objs\"
 				WarningLevel="3"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -59,7 +61,10 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				UseUnicodeResponseFiles="false"
 				OutputFile="$(OutDir)\libende.lib"
+				IgnoreAllDefaultLibraries="true"
+				IgnoreDefaultLibraryNames="Nafxcwd.lib,msvcprt.lib,libcmtd.lib,libmmt.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -82,8 +87,10 @@
 			OutputDirectory="$(SolutionDir)\Lib\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
+			ManagedExtensions="0"
 			WholeProgramOptimization="1"
+			EnableManagedIncrementalBuild="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -102,14 +109,15 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../src;../src/aes256;../src/base64;../src/lzmat"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
-				ObjectFile="$(IntDir)\..\Lib"
+				ObjectFile="$(IntDir)\objs\"
 				WarningLevel="3"
-				DebugInformationFormat="3"
+				DebugInformationFormat="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -122,7 +130,11 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				UseUnicodeResponseFiles="false"
+				LinkLibraryDependencies="true"
 				OutputFile="$(OutDir)\libende.lib"
+				IgnoreAllDefaultLibraries="true"
+				IgnoreDefaultLibraryNames="Nafxcwd.lib,msvcprt.lib,libcmtd.lib,libmmt.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -195,12 +207,6 @@
 				RelativePath="..\src\lzmat\lzmat.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
 		</Filter>
 	</Files>
 	<Globals>
