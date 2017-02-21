@@ -128,7 +128,7 @@ int base64_encode(const char *text, int numBytes, char **encodedText)
         }
     }
 
-    (*encodedText)[j] = NULL;
+    (*encodedText)[j] = 0x00; /// NULL;
 
     return size;
 }
