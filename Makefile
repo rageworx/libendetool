@@ -1,5 +1,5 @@
 # Makefile for libendetool
-# (C)2016 Raphael Kim / rageworx
+# (C)2016, 2017 Raphael Kim / rageworx
 #
 
 # To enable build for embedded linux, you may encomment next 2 lines.
@@ -11,9 +11,9 @@
 CCPATH =
 
 # Compiler configure.
-GCC = gcc
-GPP = g++
-AR  = ar
+GCC = ${CCPATH}gcc
+GPP = ${CCPATH}g++
+AR  = ${CCPATH}ar
 
 SOURCEDIR = ./src
 AES256DIR = ${SOURCEDIR}/aes256
@@ -23,10 +23,18 @@ OBJDIR    = ./obj/Release
 OUTBIN    = libendetool.a
 OUTDIR    = .
 DEFINEOPT = -D_GNU_SOURCE
-OPTIMIZEOPT = -O2 -fexpensive-optimizations
-CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) -D$(DEFINEOPT) $(OPTIMIZEOPT) -mwindows
+OPTIMIZEOPT = -O3 -fexpensive-optimizations -s
+OPTADD    = 
+
+ifeq (windows,$(firstword $(MAKECMDGOALS)))
+OPTADD += -mwindows
+endif
+
+CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) -D$(DEFINEOPT) $(OPTIMIZEOPT) $(OPTADD)
 
 all: prepare clean ${OUTDIR}/${OUTBIN}
+
+windows: all
 
 prepare:
 	@mkdir -p ${OBJDIR}
@@ -44,7 +52,7 @@ ${OBJDIR}/lzmat_enc.o:
 	$(GPP) -c ${LZMATDIR}/lzmat_enc.c -o $@
 	
 ${OBJDIR}/endetool.o:
-	$(GPP) -c ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) -o $@
+	$(GPP) -c ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(OPTIMIZEOPT) -o $@
 
 ${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/lzmat_dec.o ${OBJDIR}/lzmat_enc.o ${OBJDIR}/endetool.o
 	$(AR) -q $@ ${OBJDIR}/*.o
