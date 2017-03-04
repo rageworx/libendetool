@@ -6,6 +6,11 @@
 
 ## Latest Update 
 
+* 04-March-2017
+    - Included LLVM-GCC make file for MAC OS.
+
+## Previous Update 
+
 * 21-Jan-2017
     - Added visual studio projects to in vc90prj and vc11proj.
     - Enhanced some issues for Makefile
@@ -19,7 +24,8 @@
 
 ## Supported compilers 
 
-* gcc 32bit, 64bit ( inc. Apple X-Code )
+* LLVM GCC for Apple Mac OS.
+* gcc 32bit, 64bit ( inc. Apple HPC gcc )
 * MinGW, MinGW-W64 32bit, 64bit
 * Visual Studio 2008, 2012, and later
 
