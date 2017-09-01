@@ -40,16 +40,16 @@ prepare:
 	@mkdir -p ${OBJDIR}
 
 ${OBJDIR}/aes256.o:
-	$(GPP) -c ${AES256DIR}/aes256.c -o $@
+	$(GCC) -c ${AES256DIR}/aes256.c -o $@
 
 ${OBJDIR}/base64.o:
-	$(GPP) -c ${BASE64DIR}/base64.c -o $@
+	$(GCC) -c ${BASE64DIR}/base64.c -o $@
 
 ${OBJDIR}/lzmat_dec.o:
-	$(GPP) -c ${LZMATDIR}/lzmat_dec.c -o $@
+	$(GCC) -c ${LZMATDIR}/lzmat_dec.c -o $@
 
 ${OBJDIR}/lzmat_enc.o:
-	$(GPP) -c ${LZMATDIR}/lzmat_enc.c -o $@
+	$(GCC) -c ${LZMATDIR}/lzmat_enc.c -o $@
 	
 ${OBJDIR}/endetool.o:
 	$(GPP) -c ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(OPTIMIZEOPT) -o $@
