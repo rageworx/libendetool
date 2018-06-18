@@ -29,9 +29,16 @@
 *.app
 
 # M$VC
+*.opendb
 *.db
 
 # Others
 Makefile
 lib/
 obj/
+vc90prj/Debug/
+vc90prj/Release/
+vc90prj/Lib/
+vc11prj/Debug/
+vc11prj/Release/
+vc11prj/Lib/
