@@ -4,8 +4,6 @@
 #define F(x)   (((x)<<1) ^ ((((x)>>7) & 1) * 0x1b))
 #define FD(x)  (((x) >> 1) ^ (((x) & 1) ? 0x8d : 0))
 
-#define BACK_TO_TABLES
-
 static uint8_t rj_xtime(uint8_t);
 static void aes_subBytes(uint8_t *);
 static void aes_subBytes_inv(uint8_t *);
@@ -18,15 +16,11 @@ static void aes_mixColumns_inv(uint8_t *);
 static void aes_expandEncKey(uint8_t *, uint8_t *);
 static void aes_expandDecKey(uint8_t *, uint8_t *);
 
-#ifndef BACK_TO_TABLES
 static uint8_t gf_alog(uint8_t);
 static uint8_t gf_log(uint8_t);
 static uint8_t gf_mulinv(uint8_t);
 static uint8_t rj_sbox(uint8_t);
 static uint8_t rj_sbox_inv(uint8_t);
-#endif
-
-#ifndef BACK_TO_TABLES
 
 /* -------------------------------------------------------------------------- */
 static uint8_t gf_alog(uint8_t x) // calculate anti-logarithm gen 3
@@ -88,9 +82,6 @@ static uint8_t rj_sbox_inv(uint8_t x)
 
     return gf_mulinv(sb);
 } /* rj_sbox_inv */
-
-
-#endif /// of BACK_TO_TABLES
 
 /* -------------------------------------------------------------------------- */
 static uint8_t rj_xtime(uint8_t x)
