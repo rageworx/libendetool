@@ -23,14 +23,14 @@ OBJDIR    = ./obj/Release
 OUTBIN    = libendetool.a
 OUTDIR    = .
 DEFINEOPT = -D_GNU_SOURCE
-OPTIMIZEOPT = -O3 -fexpensive-optimizations -s
+OPTIMOPT  = -O3 -fexpensive-optimizations -s
 OPTADD    = 
 
 ifeq (windows,$(firstword $(MAKECMDGOALS)))
 OPTADD += -mwindows
 endif
 
-CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) -D$(DEFINEOPT) $(OPTIMIZEOPT) $(OPTADD)
+CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) -D$(DEFINEOPT) $(OPTIMOPT) $(OPTADD)
 
 all: prepare clean ${OUTDIR}/${OUTBIN}
 
@@ -40,23 +40,30 @@ prepare:
 	@mkdir -p ${OBJDIR}
 
 ${OBJDIR}/aes256.o:
-	$(GCC) -c ${AES256DIR}/aes256.c -o $@
+	@echo "Compiling AES256 ..."
+	@$(GCC) -c ${AES256DIR}/aes256.c -o $@
 
 ${OBJDIR}/base64.o:
-	$(GCC) -c ${BASE64DIR}/base64.c -o $@
+	@echo "Compiling BASE64 ..."
+	@$(GCC) -c ${BASE64DIR}/base64.c -o $@
 
 ${OBJDIR}/lzmat_dec.o:
-	$(GCC) -c ${LZMATDIR}/lzmat_dec.c -o $@
+	@echo "Compiling LZMAT decoder ..."
+	@$(GCC) -c ${LZMATDIR}/lzmat_dec.c -o $@
 
 ${OBJDIR}/lzmat_enc.o:
-	$(GCC) -c ${LZMATDIR}/lzmat_enc.c -o $@
+	@echo "Compiling LZMAT encoder ..."
+	@$(GCC) -c ${LZMATDIR}/lzmat_enc.c -o $@
 	
 ${OBJDIR}/endetool.o:
-	$(GPP) -c ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(OPTIMIZEOPT) -o $@
+	@echo "Compiling library exports ..."
+	@$(GPP) -c ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(OPTIMIZEOPT) -o $@
 
 ${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/lzmat_dec.o ${OBJDIR}/lzmat_enc.o ${OBJDIR}/endetool.o
-	$(AR) -q $@ ${OBJDIR}/*.o
+	@echo "Generating library ..."
+	@$(AR) -q $@ ${OBJDIR}/*.o
 
 clean:
+	@echo "Cleaning ...."
 	@rm -rf ${OBJDIR}/*
 	@rm -rf ${OUTDIR}/${OUTBIN}
