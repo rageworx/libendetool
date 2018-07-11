@@ -62,6 +62,11 @@ void EnDeTool::reset()
     return;
 }
 
+void EnDetool::compress( bool enabled )
+{
+	doingcompress = enabled;
+}
+
 int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 {
     if ( ( src == NULL ) || ( srcsize == 0 ) )
