@@ -62,7 +62,7 @@ void EnDeTool::reset()
     return;
 }
 
-void EnDetool::compress( bool enabled )
+void EnDeTool::compress( bool enabled )
 {
 	doingcompress = enabled;
 }
@@ -382,10 +382,12 @@ unsigned EnDeTool::compressbuffer( char* &buff, unsigned blen )
 {
     if ( ( buff != NULL ) && ( blen > 0 ) )
     {
-        MP_U8* compbuff = new MP_U8[ blen ];
+        unsigned allocsz = MAX_LZMAT_ENCODED_SIZE( blen );
+        MP_U8* compbuff = new MP_U8[ allocsz ];
         if ( compbuff != NULL )
         {
-            MP_U32 complen = 0;
+            MP_U32 complen = allocsz;
+
             int retcode = lzmat_encode( compbuff, &complen,
                                         (MP_U8*)buff, (MP_U32)blen );
             if ( retcode == LZMAT_STATUS_OK )
@@ -394,14 +396,14 @@ unsigned EnDeTool::compressbuffer( char* &buff, unsigned blen )
                 if ( switchbuff != NULL )
                 {
                     // put header
-                    memcpy( switchbuff, LZMAT_COMPRESS_HEADER, 4 );
+                    memcpy( switchbuff + 0, LZMAT_COMPRESS_HEADER, 4 );
                     memcpy( switchbuff + 4, &blen, 4 );
                     memcpy( switchbuff + 8, compbuff, complen );
                     delete[] buff;
                     buff = (char*)switchbuff;
                     delete[] compbuff;
 
-                    return complen;
+                    return complen + 8;
                 }
             }
 
@@ -425,19 +427,20 @@ unsigned EnDeTool::decompressbuffer( char* &buff, unsigned blen )
 
             if ( olen > 0 )
             {
-                MP_U8* rebuff = (MP_U8*)buff;
+                MP_U8* rebuff = (MP_U8*)buff + 8;
                 MP_U32 rebufflen = blen - 8;
+
                 MP_U8* debuff = new MP_U8[ olen ];
                 if ( debuff != NULL )
                 {
                     int retcode = lzmat_decode( debuff, &olen,
-                                                rebuff + 8, rebufflen );
+                                                rebuff, rebufflen );
 
                     if ( retcode == LZMAT_STATUS_OK )
                     {
                         delete[] buff;
-                        buff == (char*)debuff;
-                        
+                        buff = (char*)debuff;
+
                         return olen;
                     }
                 }
