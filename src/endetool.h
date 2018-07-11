@@ -16,6 +16,7 @@ class EnDeTool
 
     public:
         void reset();
+        void compress( bool enable = false );
         void cryptkey( const char* key );
         void text( const char* srctext );
         void encodedtext( const char* srctext );
@@ -25,10 +26,15 @@ class EnDeTool
         int  decodebinary( const char* src, unsigned srcsize, char* &out );
 
     public:
+        bool        compress()      { return doingcompress; }
         const char* text()          { return origintext; }
         const char* encodedtext()   { return encrypttext; }
         const char* key()           { return encryptkey; }
         bool        encoded()       { return isencoded; }
+
+    protected:
+        unsigned    compressbuffer( char* &buff, unsigned blen );
+        unsigned    decompressbuffer( char* &buff, unsigned blen );
 
     protected:
         char  encryptkey[32];
@@ -36,6 +42,7 @@ class EnDeTool
         char* encrypttext;
         void* cryptcontext;
         bool  isencoded;
+        bool  doingcompress;
 
     protected:
         bool encode();

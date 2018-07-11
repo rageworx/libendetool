@@ -8,13 +8,21 @@
 
 #include "base64.h"
 #include "aes256.h"
+#include "lzmat.h"
 #include "endetool.h"
+
+///////////////////////////////////////////////////////////////
+
+const char*  LZMAT_COMPRESS_HEADER = "LZMT";
+
+///////////////////////////////////////////////////////////////
 
 EnDeTool::EnDeTool()
  : origintext(NULL),
    encrypttext(NULL),
    cryptcontext(NULL),
-   isencoded(false)
+   isencoded(false),
+   doingcompress(false)
 {
     memset( encryptkey, 0, 32 );
 
@@ -363,4 +371,74 @@ bool EnDeTool::decode()
     aes256_done( actx );
 
     return true;
+}
+
+unsigned EnDeTool::compressbuffer( char* &buff, unsigned blen )
+{
+    if ( ( buff != NULL ) && ( blen > 0 ) )
+    {
+        MP_U8* compbuff = new MP_U8[ blen ];
+        if ( compbuff != NULL )
+        {
+            MP_U32 complen = 0;
+            int retcode = lzmat_encode( compbuff, &complen,
+                                        (MP_U8*)buff, (MP_U32)blen );
+            if ( retcode == LZMAT_STATUS_OK )
+            {
+                MP_U8* switchbuff = new MP_U8[ complen + 8 ];
+                if ( switchbuff != NULL )
+                {
+                    // put header
+                    memcpy( switchbuff, LZMAT_COMPRESS_HEADER, 4 );
+                    memcpy( switchbuff + 4, &blen, 4 );
+                    memcpy( switchbuff + 8, compbuff, complen );
+                    delete[] buff;
+                    buff = (char*)switchbuff;
+                    delete[] compbuff;
+
+                    return complen;
+                }
+            }
+
+            delete[] compbuff;
+        }
+    }
+
+    return 0;
+}
+
+unsigned EnDeTool::decompressbuffer( char* &buff, unsigned blen )
+{
+    if ( ( buff != NULL ) && ( blen > 8 ) )
+    {
+        // check header
+        if ( strncmp( buff, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
+        {
+            //Check original size.
+            MP_U32 olen = 0;
+            memcpy( &olen, buff + 4, 4 );
+
+            if ( olen > 0 )
+            {
+                MP_U8* rebuff = (MP_U8*)buff;
+                MP_U32 rebufflen = blen - 8;
+                MP_U8* debuff = new MP_U8[ olen ];
+                if ( debuff != NULL )
+                {
+                    int retcode = lzmat_decode( debuff, &olen,
+                                                rebuff + 8, rebufflen );
+
+                    if ( retcode == LZMAT_STATUS_OK )
+                    {
+                        delete[] buff;
+                        buff == (char*)debuff;
+                        
+                        return olen;
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
 }
