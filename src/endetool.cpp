@@ -117,6 +117,13 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 
     aes256_done( actx );
 
+	if ( doingcompress == true )
+	{
+		unsigned comsz = compressbuffer( out, tmpCiperLen );
+		
+		return comsz;
+	}
+
     return tmpCiperLen;
 }
 
@@ -124,6 +131,27 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 {
     if ( ( src == NULL ) || ( srcsize < 16 ) )
         return -1;
+
+	char*    decbuff = (char*)src;
+	unsigned decbuffsz = srcsize;
+	bool     need2free = false;
+
+	// checks is it compressed ..
+	if ( strncmp( src, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
+	{
+		decbuff = new char[ srcsize ];
+		
+		if ( decbuff == NULL )
+			return -1;
+		
+		memcpy( decbuff, src, srcsize );
+		decbuffsz = decompressbuffer( decbuff, srcsize );
+
+		if ( decbuffsz < 16 )
+			return -2;
+
+		need2free = true;
+	}
 
     aes256_context* actx = (aes256_context*)cryptcontext;
     aes256_init( actx, (unsigned char*)encryptkey );
@@ -134,11 +162,17 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
         out = NULL;
     }
 
-    out = new char[ srcsize + 1 ];
-    memset( out, 0, srcsize + 1 );
-    memcpy( out, src, srcsize );
+    out = new char[ decbuffsz + 1 ];
+    memset( out, 0, decbuffsz + 1 );
+    memcpy( out, decbuff, decbuffsz );
 
-    int decloop = srcsize / 16;
+	if ( need2free == true )
+	{
+		delete[] decbuff;
+	}
+
+    int decloop = decbuffsz / 16;
+
     if ( decloop == 0 )
     {
         decloop = 1;
@@ -276,10 +310,20 @@ bool EnDeTool::encode()
 
         for ( int cnt=0; cnt<encloop; cnt++ )
         {
-            aes256_encrypt_ecb( actx, (unsigned char*)&tmpCiperBuff[ cnt * 16 ] );
+            aes256_encrypt_ecb( actx, \
+			    (unsigned char*)&tmpCiperBuff[ cnt * 16 ] );
         }
 
         aes256_done( actx );
+
+		if ( doingcompress == true )
+		{
+			unsigned comsz = compressbuffer( tmpCiperBuff, tmpCiperLen );
+			if ( comsz > 0 )
+			{
+				tmpCiperLen = comsz;
+			}
+		}
 
         int outBase64Len = tmpCiperLen * 2;
 
@@ -354,6 +398,17 @@ bool EnDeTool::decode()
         delete[] origintext;
         origintext = NULL;
     }
+
+	// checks is it compressed ..
+	if ( strncmp( tmpCiperBuff, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
+	{
+		unsigned decsz = decompressbuffer( tmpCiperBuff, tmpCiperLen );
+		if ( decsz > 0 )
+		{
+			tmpCiperLen = decsz;
+			retI = decsz;
+		}
+	}
 
     int decloop = tmpCiperLen / 16;
     if ( decloop == 0 )

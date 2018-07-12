@@ -30,7 +30,8 @@ ifeq (windows,$(firstword $(MAKECMDGOALS)))
 OPTADD += -mwindows
 endif
 
-CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) -D$(DEFINEOPT) $(OPTIMOPT) $(OPTADD)
+CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(DEFINEOPT)
+LFLAGS    = $(OPTIMOPT) $(OPTADD)
 
 all: prepare clean ${OUTDIR}/${OUTBIN}
 
@@ -41,23 +42,23 @@ prepare:
 
 ${OBJDIR}/aes256.o:
 	@echo "Compiling AES256 ..."
-	@$(GCC) -c ${AES256DIR}/aes256.c -o $@
+	@$(GCC) -c ${CFLAGS} ${AES256DIR}/aes256.c -o $@
 
 ${OBJDIR}/base64.o:
 	@echo "Compiling BASE64 ..."
-	@$(GCC) -c ${BASE64DIR}/base64.c -o $@
+	@$(GCC) -c ${CFLAGS} ${BASE64DIR}/base64.c -o $@
 
 ${OBJDIR}/lzmat_dec.o:
 	@echo "Compiling LZMAT decoder ..."
-	@$(GCC) -c ${LZMATDIR}/lzmat_dec.c -o $@
+	@$(GCC) -c ${CFLAGS} ${LZMATDIR}/lzmat_dec.c -o $@
 
 ${OBJDIR}/lzmat_enc.o:
 	@echo "Compiling LZMAT encoder ..."
-	@$(GCC) -c ${LZMATDIR}/lzmat_enc.c -o $@
+	@$(GCC) -c ${CFLAGS} ${LZMATDIR}/lzmat_enc.c -o $@
 	
 ${OBJDIR}/endetool.o:
 	@echo "Compiling library exports ..."
-	@$(GPP) -c ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(OPTIMIZEOPT) -o $@
+	@$(GPP) -c ${CFLAGS} ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(OPTIMIZEOPT) -o $@
 
 ${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/lzmat_dec.o ${OBJDIR}/lzmat_enc.o ${OBJDIR}/endetool.o
 	@echo "Generating library ..."
