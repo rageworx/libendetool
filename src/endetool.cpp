@@ -244,9 +244,9 @@ void EnDeTool::cryptkey( const char* key )
         return;
 
     int cpylen = strlen( key );
-    if ( cpylen > 8 )
+    if ( cpylen > 32 )
     {
-        cpylen = 8;
+        cpylen = 32;
     }
 
     memset( encryptkey, 0, 32 );
