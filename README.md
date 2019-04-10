@@ -4,12 +4,20 @@
 
 * A C++ open source project for helping easily encode or decode string and stream data with AES-256 and BASE-64.
 
+## Vulnerability
+* This AES-256 encryption was designed in old time, as called ECM.
+* AES-256-ECM is not stronger than AES-256-CBC.
+* Using LZMAT compression may helps avoids attacks from same pattern in large data length.
+
 ## Latest Update 
+
+* 10-Aril-2019
+    - Fixed key length limited in 8 bytes to 32 bytes.
+
+## Previous Update 
 
 * 04-March-2017
     - Included LLVM-GCC make file for MAC OS.
-
-## Previous Update 
 
 * 21-Jan-2017
     - Added visual studio projects to in vc90prj and vc11proj.
