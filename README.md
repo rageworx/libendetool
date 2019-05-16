@@ -7,9 +7,6 @@
 ## Compatible
 * Lastest version of libendetool not compatibles with 0.4-prerelease by updating AES-256 encryption method.
 
-## Vulnerability
-* Using LZMAT compression may helps avoids attacks from same pattern in large data length.
-
 ## Latest Update 
 
 * 16-May-2019
