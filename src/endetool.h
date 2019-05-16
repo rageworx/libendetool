@@ -33,11 +33,13 @@ class EnDeTool
         bool        encoded()       { return isencoded; }
 
     protected:
+        void        generateiv();
         unsigned    compressbuffer( char* &buff, unsigned blen );
         unsigned    decompressbuffer( char* &buff, unsigned blen );
 
     protected:
         char  encryptkey[32];
+        char  encryptiv[32];
         char* origintext;
         char* encrypttext;
         void* cryptcontext;

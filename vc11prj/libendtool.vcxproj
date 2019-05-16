@@ -90,14 +90,14 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\aes256\aes256.c" />
+    <ClCompile Include="..\src\aes256\aes.c" />
     <ClCompile Include="..\src\base64\base64.c" />
     <ClCompile Include="..\src\endetool.cpp" />
     <ClCompile Include="..\src\lzmat\lzmat_dec.c" />
     <ClCompile Include="..\src\lzmat\lzmat_enc.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\aes256\aes256.h" />
+    <ClInclude Include="..\src\aes256\aes.hpp" />
     <ClInclude Include="..\src\aes256\back2def.h" />
     <ClInclude Include="..\src\base64\base64.h" />
     <ClInclude Include="..\src\endetool.h" />

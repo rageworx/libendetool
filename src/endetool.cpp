@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "base64.h"
-#include "aes256.h"
+#include "aes.hpp"
 #include "lzmat.h"
 #include "endetool.h"
 
@@ -25,9 +25,10 @@ EnDeTool::EnDeTool()
    doingcompress(false)
 {
     memset( encryptkey, 0, 32 );
+    memset( encryptiv, 0, 32 );
 
-    aes256_context* actx = new aes256_context;
-    cryptcontext = (void*)actx;
+    AES_ctx* aesctx = new AES_ctx;
+    cryptcontext = (void*)aesctx;
 }
 
 EnDeTool::~EnDeTool()
@@ -42,6 +43,13 @@ EnDeTool::~EnDeTool()
     {
         delete[] encrypttext;
         encrypttext = NULL;
+    }
+    
+    if ( cryptcontext != NULL )
+    {
+        AES_ctx* aesctx = (AES_ctx*)cryptcontext;
+        cryptcontext = NULL;
+        delete aesctx;
     }
 }
 
@@ -72,19 +80,22 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     if ( ( src == NULL ) || ( srcsize == 0 ) )
         return -1;
 
-    aes256_context* actx = (aes256_context*)cryptcontext;
-    aes256_init( actx, (unsigned char*)encryptkey );
+    generateiv();
+    AES_ctx* actx = (AES_ctx*)cryptcontext;
+    AES_init_ctx_iv( actx, 
+                     (const uint8_t*)encryptkey , 
+                     (const uint8_t*)encryptiv );
 
     int tmpCiperLen  = srcsize;
 
-    if ( ( tmpCiperLen > 16 ) && ( ( tmpCiperLen % 16 ) != 0 ) )
+    if ( ( tmpCiperLen > AES_BLOCKLEN ) && ( ( tmpCiperLen % AES_BLOCKLEN ) != 0 ) )
     {
-        tmpCiperLen += 16 - ( tmpCiperLen % 16 );
+        tmpCiperLen += AES_BLOCKLEN - ( tmpCiperLen % AES_BLOCKLEN );
     }
     else
     {
         // Let minimal 16 bytes
-        tmpCiperLen = 16;
+        tmpCiperLen = AES_BLOCKLEN;
     }
 
     if ( out != NULL )
@@ -104,7 +115,7 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     memset( out, 0, tmpCiperLen + 1 );
     memcpy( out, src, srcsize );
 
-    int encloop = tmpCiperLen / 16;
+    int encloop = tmpCiperLen / AES_BLOCKLEN;
     if ( encloop == 0 )
     {
         encloop = 1;
@@ -112,10 +123,10 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 
     for ( int cnt=0; cnt<encloop; cnt++ )
     {
-        aes256_encrypt_ecb( actx, (unsigned char*)&out[ cnt * 16 ] );
+        AES_CBC_encrypt_buffer( actx, 
+                                (uint8_t*)&out[ cnt * AES_BLOCKLEN ], 
+                                AES_BLOCKLEN );
     }
-
-    aes256_done( actx );
 
 	if ( doingcompress == true )
 	{
@@ -129,7 +140,7 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 
 int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 {
-    if ( ( src == NULL ) || ( srcsize < 16 ) )
+    if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
         return -1;
 
 	char*    decbuff = (char*)src;
@@ -147,14 +158,17 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 		memcpy( decbuff, src, srcsize );
 		decbuffsz = decompressbuffer( decbuff, srcsize );
 
-		if ( decbuffsz < 16 )
+		if ( decbuffsz < AES_BLOCKLEN )
 			return -2;
 
 		need2free = true;
 	}
 
-    aes256_context* actx = (aes256_context*)cryptcontext;
-    aes256_init( actx, (unsigned char*)encryptkey );
+    generateiv();
+    AES_ctx* actx = (AES_ctx*)cryptcontext;
+    AES_init_ctx_iv( actx, 
+                     (const uint8_t*)encryptkey , 
+                     (const uint8_t*)encryptiv );
 
     if ( out != NULL )
     {
@@ -171,7 +185,7 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 		delete[] decbuff;
 	}
 
-    int decloop = decbuffsz / 16;
+    int decloop = decbuffsz / AES_BLOCKLEN;
 
     if ( decloop == 0 )
     {
@@ -180,10 +194,10 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 
     for (int cnt=0; cnt<decloop; cnt++ )
     {
-        aes256_decrypt_ecb( actx, (unsigned char*)&out[cnt * 16] );
+        AES_CBC_decrypt_buffer( actx, 
+                                (uint8_t*)&out[cnt * AES_BLOCKLEN], 
+                                AES_BLOCKLEN );
     }
-
-    aes256_done( actx );
 
     return srcsize;
 }
@@ -272,8 +286,11 @@ bool EnDeTool::encode()
     if ( cryptcontext == NULL )
         return false;
 
-    aes256_context* actx = (aes256_context*)cryptcontext;
-    aes256_init( actx, (unsigned char*)encryptkey );
+    generateiv();
+    AES_ctx* actx = (AES_ctx*)cryptcontext;
+    AES_init_ctx_iv( actx, 
+                     (const uint8_t*)encryptkey , 
+                     (const uint8_t*)encryptiv );
 
     int   srcLen       = strlen(origintext);
     int   tmpCiperLen  = srcLen;
@@ -281,17 +298,17 @@ bool EnDeTool::encode()
     // AES-256 encodes 16 bytes in once.
     // Make buffer pads with 16 multiply.
     //if ( ( tmpCiperLen > 16 ) && ( ( tmpCiperLen % 16 ) != 0 ) )
-    if ( tmpCiperLen > 16 )
+    if ( tmpCiperLen > AES_BLOCKLEN )
     {
-        if ( ( tmpCiperLen % 16 ) != 0 )
+        if ( ( tmpCiperLen % AES_BLOCKLEN ) != 0 )
         {
-            tmpCiperLen += 16 - ( tmpCiperLen % 16 );
+            tmpCiperLen += AES_BLOCKLEN - ( tmpCiperLen % AES_BLOCKLEN );
         }
     }
     else
     {
         // Let minimal 16 bytes
-        tmpCiperLen = 16;
+        tmpCiperLen = AES_BLOCKLEN;
     }
 
     int retI = 0;
@@ -302,7 +319,7 @@ bool EnDeTool::encode()
         memset( tmpCiperBuff, 0, tmpCiperLen + 1 );
         memcpy( tmpCiperBuff, origintext, srcLen );
 
-        int encloop = tmpCiperLen / 16;
+        int encloop = tmpCiperLen / AES_BLOCKLEN;
         if ( encloop == 0 )
         {
             encloop = 1;
@@ -310,11 +327,10 @@ bool EnDeTool::encode()
 
         for ( int cnt=0; cnt<encloop; cnt++ )
         {
-            aes256_encrypt_ecb( actx, \
-			    (unsigned char*)&tmpCiperBuff[ cnt * 16 ] );
+            AES_CBC_encrypt_buffer( actx, 
+			                        (uint8_t*)&tmpCiperBuff[ cnt * AES_BLOCKLEN ], 
+                                    AES_BLOCKLEN );
         }
-
-        aes256_done( actx );
 
 		if ( doingcompress == true )
 		{
@@ -376,8 +392,11 @@ bool EnDeTool::decode()
     if ( encrypttext == NULL )
         return false;
 
-    aes256_context* actx = (aes256_context*)cryptcontext;
-    aes256_init( actx, (unsigned char*)encryptkey );
+    generateiv();
+    AES_ctx* actx = (AES_ctx*)cryptcontext;
+    AES_init_ctx_iv( actx, 
+                     (const uint8_t*)encryptkey , 
+                     (const uint8_t*)encryptiv );
 
     int tmpCiperLen  = strlen(encrypttext);
     if ( tmpCiperLen == 0 )
@@ -410,7 +429,7 @@ bool EnDeTool::decode()
 		}
 	}
 
-    int decloop = tmpCiperLen / 16;
+    int decloop = tmpCiperLen / AES_BLOCKLEN;
     if ( decloop == 0 )
     {
         decloop = 1;
@@ -418,7 +437,9 @@ bool EnDeTool::decode()
 
     for (int cnt=0; cnt<decloop; cnt++ )
     {
-        aes256_decrypt_ecb( actx, (unsigned char*)&tmpCiperBuff[cnt * 16] );
+        AES_CBC_decrypt_buffer( actx, 
+                                (uint8_t*)&tmpCiperBuff[cnt * AES_BLOCKLEN],
+                                AES_BLOCKLEN );
     }
 
     // Let make it erase wrong buffers.
@@ -428,9 +449,15 @@ bool EnDeTool::decode()
 
     origintext = tmpCiperBuff;
 
-    aes256_done( actx );
-
     return true;
+}
+
+void EnDeTool::generateiv()
+{
+    for( int cnt=0; cnt<32; cnt++ )
+    {
+        encryptiv[ 31 - cnt ] = encryptkey[ cnt ];
+    }
 }
 
 unsigned EnDeTool::compressbuffer( char* &buff, unsigned blen )

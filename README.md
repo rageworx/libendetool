@@ -11,10 +11,14 @@
 
 ## Latest Update 
 
-* 10-Aril-2019
-    - Fixed key length limited in 8 bytes to 32 bytes.
+* 16-May-2019
+    - Updated AES-56 with Kokke's tine-AES-c source.
+    
 
 ## Previous Update 
+
+* 10-Aril-2019
+    - Fixed key length limited in 8 bytes to 32 bytes.
 
 * 04-March-2017
     - Included LLVM-GCC make file for MAC OS.
@@ -27,7 +31,7 @@
 ## Used encoding.
 
 * BASE-64 for encode and decode datas as ASCII ranged text string.
-* AES-256
+* AES-256 CBC.
 * LZMA-Tiny (may for compressing binary data in future)
 
 ## Supported compilers 
@@ -45,7 +49,10 @@
 
 ## External Licenses
 
-* AES-256 
+* tiny-AES-c (new)
+    - Author: Kokke
+    - Source repo.: https://github.com/kokke/tiny-AES-c
+* AES-256 (old)
     - Author: Ilya O. Levin & Hal Finny
     - Homepage: http://www.literatecode.com/aes256
 * LZMAT v1.01

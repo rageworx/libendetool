@@ -162,7 +162,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\src\aes256\aes256.c"
+				RelativePath="..\src\aes256\aes.c"
 				>
 			</File>
 			<File
@@ -188,7 +188,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\src\aes256\aes256.h"
+				RelativePath="..\src\aes256\aes.hpp"
 				>
 			</File>
 			<File
