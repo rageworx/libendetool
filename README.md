@@ -4,9 +4,9 @@
 
 * A C++ open source project for helping easily encode or decode string and stream data with AES-256 and BASE-64.
 
+## Compatible
+
 ## Vulnerability
-* This AES-256 encryption was designed in old time, as called ECM.
-* AES-256-ECM is not stronger than AES-256-CBC.
 * Using LZMAT compression may helps avoids attacks from same pattern in large data length.
 
 ## Latest Update 
