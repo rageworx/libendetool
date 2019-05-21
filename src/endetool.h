@@ -2,10 +2,11 @@
 #define __ENDETOOL_H__
 
 ////////////////////////////////////////////////////////////////////////////////
-// EnDeTool for Crypting data with AES256 and BASE64.
+// EnDeTool for Crypting data with AES256-CBC and BASE64.
 // ===========================================================================
 // A Front-End of C++ class library for gcc/MinGW
-// (C)Copyright 2014 Raphael Kim.
+// (C)Copyright 2014, 2019 Raphael Kim.
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 class EnDeTool
