@@ -404,7 +404,8 @@ copy_uncmp:
             if(cur_nib)
                 *pOut=0;
             tag_nib = cur_nib;
-            if ( (MP_U32)pOut >= (MP_U32)pEndOut )
+            //if ( (MP_U32)pOut >= (MP_U32)pEndOut )
+            if ( pOut >= pEndOut )
                 return LZMAT_STATUS_INTEGRITY_FAILURE;
         }
 #undef cbCompressed
@@ -441,7 +442,7 @@ copy_uncmp:
     }
     else
         *pTag=ThisTag;
-    *pcbOut = ((MP_U32)pOut - (MP_U32)pbOut)+cur_nib;
+    *pcbOut = (pOut - pbOut)+cur_nib;
     return 0;
 }
 

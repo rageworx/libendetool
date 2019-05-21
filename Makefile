@@ -1,6 +1,5 @@
 # Makefile for libendetool
-# (C)2016, 2017 Raphael Kim / rageworx
-#
+# (C)2016 ~ 2019 Raphael Kim / rageworx
 
 # To enable build for embedded linux, you may encomment next 2 lines.
 # CCPREPATH = ${ARM_LINUX_GCC_PATH}
@@ -23,7 +22,7 @@ LZMATDIR  = ${SOURCEDIR}/lzmat
 OBJDIR    = ./obj/Release
 OUTBIN    = libendetool.a
 DEFINEOPT = -D_GNU_SOURCE
-OPTIMOPT  = -O3 -fexpensive-optimizations -s
+OPTIMOPT  = -O2 -s
 OPTADD    = 
 
 ifeq (windows,$(firstword $(MAKECMDGOALS)))
@@ -43,7 +42,7 @@ prepare:
 
 ${OBJDIR}/aes256.o:
 	@echo "Compiling AES256 ..."
-	@$(GCC) -c ${CFLAGS} ${AES256DIR}/aes256.c -o $@
+	@$(GCC) -c ${CFLAGS} ${AES256DIR}/aes.c -o $@
 
 ${OBJDIR}/base64.o:
 	@echo "Compiling BASE64 ..."

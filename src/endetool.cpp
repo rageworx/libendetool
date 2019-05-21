@@ -452,12 +452,32 @@ bool EnDeTool::decode()
     return true;
 }
 
+#ifdef DEBUG
+void debug_printkey( const char* prefix, const char* key )
+{
+    printf( "%s = '", prefix );
+    for( unsigned cnt=0; cnt<32; cnt++ )
+    {
+        printf( "%c", key[cnt] );
+    }
+    printf( "'\n" );
+}
+#endif
+
 void EnDeTool::generateiv()
 {
-    for( int cnt=0; cnt<32; cnt++ )
+    memset( encryptiv, 0, 32 );
+
+    for( unsigned cnt=0; cnt<32; cnt++ )
     {
-        encryptiv[ 31 - cnt ] = encryptkey[ cnt ];
+       encryptiv[ cnt ] = encryptkey[ 31 - cnt ];
     }
+
+#ifdef DEBUG
+    debug_printkey( "#DEBUG# EK", encryptkey );
+    debug_printkey( "#DEBUG# IV", encryptiv );
+#endif 
+ 
 }
 
 unsigned EnDeTool::compressbuffer( char* &buff, unsigned blen )

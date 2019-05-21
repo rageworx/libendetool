@@ -1,5 +1,5 @@
 #!/bin/bash
-KEY="123456789012345678901234567890"
+KEY="12345678901234567890123456789012"
 SRC="Testing_source_words_for_libendetool_and_endecmd."
 ENDECMD=bin/endecmd
 
