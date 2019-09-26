@@ -270,7 +270,7 @@ void EnDeTool::cryptkey( const char* key, const char* iv )
     if ( iv != NULL )
     {
         cpylen = strlen( iv );
-        if ( iv > 32 )
+        if ( cpylen > 32 )
         {
             cpylen = 32;
         }
