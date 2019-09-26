@@ -34,6 +34,7 @@
 
 # Others
 Makefile
+bin/
 lib/
 obj/
 vc90prj/Debug/

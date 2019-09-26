@@ -9,6 +9,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+// Version means 1.2.0.0
+#define ENDETOOL_VERSION    (0x01020000)
+
 class EnDeTool
 {
     public:
@@ -18,7 +21,7 @@ class EnDeTool
     public:
         void reset();
         void compress( bool enable = false );
-        void cryptkey( const char* key );
+        void cryptkey( const char* key, const char* iv = NULL );
         void text( const char* srctext );
         void encodedtext( const char* srctext );
 

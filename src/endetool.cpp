@@ -252,7 +252,7 @@ void EnDeTool::encodedtext( const char* srctext )
     }
 }
 
-void EnDeTool::cryptkey( const char* key )
+void EnDeTool::cryptkey( const char* key, const char* iv )
 {
     if ( key == NULL )
         return;
@@ -265,6 +265,18 @@ void EnDeTool::cryptkey( const char* key )
 
     memset( encryptkey, 0, 32 );
     strncpy( encryptkey, key, cpylen );
+
+    memset( encryptiv, 0, 32 );
+    if ( iv != NULL )
+    {
+        cpylen = strlen( iv );
+        if ( iv > 32 )
+        {
+            cpylen = 32;
+        }
+
+        strncpy( encryptiv, iv, cpylen );
+    }
 
     if ( isencoded == true )
     {
@@ -466,11 +478,15 @@ void debug_printkey( const char* prefix, const char* key )
 
 void EnDeTool::generateiv()
 {
-    memset( encryptiv, 0, 32 );
-
-    for( unsigned cnt=0; cnt<32; cnt++ )
+    if ( encryptiv[0] == 0 )
     {
-       encryptiv[ cnt ] = encryptkey[ 31 - cnt ];
+        // erase iv once more.
+        memset( encryptiv, 0, 32 );
+
+        for( unsigned cnt=0; cnt<32; cnt++ )
+        {
+           encryptiv[ cnt ] = encryptkey[ 31 - cnt ];
+        }
     }
 
 #ifdef DEBUG

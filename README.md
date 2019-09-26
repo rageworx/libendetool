@@ -9,14 +9,16 @@
 
 ## Latest Update 
 
+* 26-Sep-2019
+    - able to set IV through encryptkey(). 
+
+## Previous Update 
+
 * 16-May-2019
     - Updated AES-56 with Kokke's tine-AES-c source.
     - Fixed a bug not releases AES context memory.
     - Removed old AES-256-ECB sources.
-    
-
-## Previous Update 
-
+ 
 * 10-Aril-2019
     - Fixed key length limited in 8 bytes to 32 bytes.
 
