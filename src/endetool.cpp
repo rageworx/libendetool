@@ -44,7 +44,7 @@ EnDeTool::~EnDeTool()
         delete[] encrypttext;
         encrypttext = NULL;
     }
-    
+
     if ( cryptcontext != NULL )
     {
         AES_ctx* aesctx = (AES_ctx*)cryptcontext;
@@ -82,13 +82,14 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
-    AES_init_ctx_iv( actx, 
-                     (const uint8_t*)encryptkey , 
+    AES_init_ctx_iv( actx,
+                     (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
     int tmpCiperLen  = srcsize;
 
-    if ( ( tmpCiperLen > AES_BLOCKLEN ) && ( ( tmpCiperLen % AES_BLOCKLEN ) != 0 ) )
+    //if ( ( tmpCiperLen > AES_BLOCKLEN ) && ( ( tmpCiperLen % AES_BLOCKLEN ) != 0 ) )
+    if ( tmpCiperLen > AES_BLOCKLEN )
     {
         tmpCiperLen += AES_BLOCKLEN - ( tmpCiperLen % AES_BLOCKLEN );
     }
@@ -123,15 +124,15 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 
     for ( int cnt=0; cnt<encloop; cnt++ )
     {
-        AES_CBC_encrypt_buffer( actx, 
-                                (uint8_t*)&out[ cnt * AES_BLOCKLEN ], 
+        AES_CBC_encrypt_buffer( actx,
+                                (uint8_t*)&out[ cnt * AES_BLOCKLEN ],
                                 AES_BLOCKLEN );
     }
 
 	if ( doingcompress == true )
 	{
 		unsigned comsz = compressbuffer( out, tmpCiperLen );
-		
+
 		return comsz;
 	}
 
@@ -151,10 +152,10 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 	if ( strncmp( src, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
 	{
 		decbuff = new char[ srcsize ];
-		
+
 		if ( decbuff == NULL )
 			return -1;
-		
+
 		memcpy( decbuff, src, srcsize );
 		decbuffsz = decompressbuffer( decbuff, srcsize );
 
@@ -166,8 +167,8 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
-    AES_init_ctx_iv( actx, 
-                     (const uint8_t*)encryptkey , 
+    AES_init_ctx_iv( actx,
+                     (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
     if ( out != NULL )
@@ -194,8 +195,8 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 
     for (int cnt=0; cnt<decloop; cnt++ )
     {
-        AES_CBC_decrypt_buffer( actx, 
-                                (uint8_t*)&out[cnt * AES_BLOCKLEN], 
+        AES_CBC_decrypt_buffer( actx,
+                                (uint8_t*)&out[cnt * AES_BLOCKLEN],
                                 AES_BLOCKLEN );
     }
 
@@ -300,8 +301,8 @@ bool EnDeTool::encode()
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
-    AES_init_ctx_iv( actx, 
-                     (const uint8_t*)encryptkey , 
+    AES_init_ctx_iv( actx,
+                     (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
     int   srcLen       = strlen(origintext);
@@ -339,8 +340,8 @@ bool EnDeTool::encode()
 
         for ( int cnt=0; cnt<encloop; cnt++ )
         {
-            AES_CBC_encrypt_buffer( actx, 
-			                        (uint8_t*)&tmpCiperBuff[ cnt * AES_BLOCKLEN ], 
+            AES_CBC_encrypt_buffer( actx,
+			                        (uint8_t*)&tmpCiperBuff[ cnt * AES_BLOCKLEN ],
                                     AES_BLOCKLEN );
         }
 
@@ -406,8 +407,8 @@ bool EnDeTool::decode()
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
-    AES_init_ctx_iv( actx, 
-                     (const uint8_t*)encryptkey , 
+    AES_init_ctx_iv( actx,
+                     (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
     int tmpCiperLen  = strlen(encrypttext);
@@ -449,7 +450,7 @@ bool EnDeTool::decode()
 
     for (int cnt=0; cnt<decloop; cnt++ )
     {
-        AES_CBC_decrypt_buffer( actx, 
+        AES_CBC_decrypt_buffer( actx,
                                 (uint8_t*)&tmpCiperBuff[cnt * AES_BLOCKLEN],
                                 AES_BLOCKLEN );
     }
@@ -492,8 +493,8 @@ void EnDeTool::generateiv()
 #ifdef DEBUG
     debug_printkey( "#DEBUG# EK", encryptkey );
     debug_printkey( "#DEBUG# IV", encryptiv );
-#endif 
- 
+#endif
+
 }
 
 unsigned EnDeTool::compressbuffer( char* &buff, unsigned blen )

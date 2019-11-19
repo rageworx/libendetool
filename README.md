@@ -9,10 +9,13 @@
 
 ## Latest Update 
 
-* 26-Sep-2019
-    - able to set IV through encryptkey(). 
+* 19-Nov-2019
+    - Fixed an error case on libende size check modulates zero.
 
 ## Previous Update 
+
+* 26-Sep-2019
+    - able to set IV through encryptkey(). 
 
 * 16-May-2019
     - Updated AES-56 with Kokke's tine-AES-c source.
