@@ -44,5 +44,5 @@ vc11prj/Debug/
 vc11prj/Release/
 vc11prj/Lib/
 .vs
-.depend
-.layout
+*.depend
+*.layout
