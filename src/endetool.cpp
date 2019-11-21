@@ -151,9 +151,6 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
             delete[] pcb->buffer;
             delete pcb;
 
-            for(unsigned cnt=0;cnt<8;cnt++)
-                printf("%02X ",out[0]);
-
             return comsz + 4;
         }
         else
@@ -182,7 +179,6 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 	// checks is it compressed ..
 	if ( strncmp( &src[4], LZMAT_COMPRESS_HEADER, 4 ) == 0 )
 	{
-        printf("(LZMAT)");
         realsz = *(unsigned int*)src;
         printf("realsz=%d,",realsz);
 		decbuff = new char[ srcsize - 4 ];
@@ -198,15 +194,6 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 
 		need2free = true;
 	}
-    else
-    {
-        printf( "(" );
-        for( unsigned cnt=0; cnt<8; cnt++ )
-        {
-            printf( "%02X ", src[cnt] );
-        }
-        printf( ")" );
-    }
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;

@@ -9,10 +9,14 @@
 
 ## Latest Update 
 
-* 19-Nov-2019
-    - Fixed an error case on libende size check modulates zero.
+* 21-Nov-2019
+    - Fixed decode binary returns not original buffer size.
+	- version updated to 1.0.2.2
 
 ## Previous Update 
+
+* 19-Nov-2019
+    - Fixed an error case on libende size check modulates zero.
 
 * 26-Sep-2019
     - able to set IV through encryptkey(). 
