@@ -9,8 +9,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Version means 1.0.2.0
-#define ENDETOOL_VERSION    (0x01000200)
+// Version means 1.0.2.1
+#define ENDETOOL_VERSION    (0x01000201)
 
 class EnDeTool
 {

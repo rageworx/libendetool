@@ -200,7 +200,7 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
                                 AES_BLOCKLEN );
     }
 
-    return srcsize;
+    return decbuffsz;
 }
 
 void EnDeTool::text( const char* srctext )
