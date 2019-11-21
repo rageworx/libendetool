@@ -15,6 +15,12 @@
 
 const char*  LZMAT_COMPRESS_HEADER = "LZMT";
 
+typedef struct
+{
+    unsigned int srcsize;
+    char*        buffer;
+}CompBlk;
+
 ///////////////////////////////////////////////////////////////
 
 EnDeTool::EnDeTool()
@@ -88,7 +94,6 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 
     int tmpCiperLen  = srcsize;
 
-    //if ( ( tmpCiperLen > AES_BLOCKLEN ) && ( ( tmpCiperLen % AES_BLOCKLEN ) != 0 ) )
     if ( tmpCiperLen > AES_BLOCKLEN )
     {
         tmpCiperLen += AES_BLOCKLEN - ( tmpCiperLen % AES_BLOCKLEN );
@@ -112,9 +117,14 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     }
 #endif
 
-    out = new char[ tmpCiperLen + 1 ];
-    memset( out, 0, tmpCiperLen + 1 );
-    memcpy( out, src, srcsize );
+    CompBlk* pcb = new CompBlk;
+    if ( pcb == NULL )
+        return 0;
+
+    pcb->srcsize = srcsize;
+    pcb->buffer = new char[ tmpCiperLen + 1 ];
+    memset( pcb->buffer, 0, tmpCiperLen + 1 );
+    memcpy( pcb->buffer, src, srcsize );
 
     int encloop = tmpCiperLen / AES_BLOCKLEN;
     if ( encloop == 0 )
@@ -125,16 +135,36 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     for ( int cnt=0; cnt<encloop; cnt++ )
     {
         AES_CBC_encrypt_buffer( actx,
-                                (uint8_t*)&out[ cnt * AES_BLOCKLEN ],
+                                (uint8_t*)&pcb->buffer[ cnt*AES_BLOCKLEN ],
                                 AES_BLOCKLEN );
     }
 
 	if ( doingcompress == true )
 	{
-		unsigned comsz = compressbuffer( out, tmpCiperLen );
+		unsigned comsz = compressbuffer( pcb->buffer, tmpCiperLen );
+        
+        out = new char[ comsz + 4 ];
+        if ( out != NULL )
+        {
+            memcpy( &out[0], &pcb->srcsize, 4 );
+            memcpy( &out[4], pcb->buffer, comsz );
+            delete[] pcb->buffer;
+            delete pcb;
 
-		return comsz;
+            for(unsigned cnt=0;cnt<8;cnt++)
+                printf("%02X ",out[0]);
+
+            return comsz + 4;
+        }
+        else
+        {
+            // Error case.
+            return 0;
+        }
 	}
+
+    out = pcb->buffer;
+    delete pcb;
 
     return tmpCiperLen;
 }
@@ -144,26 +174,39 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
     if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
         return -1;
 
-	char*    decbuff = (char*)src;
-	unsigned decbuffsz = srcsize;
-	bool     need2free = false;
+	char*           decbuff     = (char*)src;
+	unsigned        decbuffsz   = srcsize - 4;
+	bool            need2free   = false;
+    unsigned int    realsz      = 0;
 
 	// checks is it compressed ..
-	if ( strncmp( src, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
+	if ( strncmp( &src[4], LZMAT_COMPRESS_HEADER, 4 ) == 0 )
 	{
-		decbuff = new char[ srcsize ];
+        printf("(LZMAT)");
+        realsz = *(unsigned int*)src;
+        printf("realsz=%d,",realsz);
+		decbuff = new char[ srcsize - 4 ];
 
 		if ( decbuff == NULL )
 			return -1;
 
-		memcpy( decbuff, src, srcsize );
-		decbuffsz = decompressbuffer( decbuff, srcsize );
+		memcpy( decbuff, &src[4], srcsize - 4 );
+		decbuffsz = decompressbuffer( decbuff, srcsize - 4 );
 
 		if ( decbuffsz < AES_BLOCKLEN )
 			return -2;
 
 		need2free = true;
 	}
+    else
+    {
+        printf( "(" );
+        for( unsigned cnt=0; cnt<8; cnt++ )
+        {
+            printf( "%02X ", src[cnt] );
+        }
+        printf( ")" );
+    }
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
@@ -199,6 +242,9 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
                                 (uint8_t*)&out[cnt * AES_BLOCKLEN],
                                 AES_BLOCKLEN );
     }
+
+    if ( realsz>0 )
+        return realsz;
 
     return decbuffsz;
 }
@@ -310,7 +356,6 @@ bool EnDeTool::encode()
 
     // AES-256 encodes 16 bytes in once.
     // Make buffer pads with 16 multiply.
-    //if ( ( tmpCiperLen > 16 ) && ( ( tmpCiperLen % 16 ) != 0 ) )
     if ( tmpCiperLen > AES_BLOCKLEN )
     {
         if ( ( tmpCiperLen % AES_BLOCKLEN ) != 0 )
