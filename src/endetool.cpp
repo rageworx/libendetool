@@ -180,7 +180,6 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 	if ( strncmp( &src[4], LZMAT_COMPRESS_HEADER, 4 ) == 0 )
 	{
         realsz = *(unsigned int*)src;
-        printf("realsz=%d,",realsz);
 		decbuff = new char[ srcsize - 4 ];
 
 		if ( decbuff == NULL )
