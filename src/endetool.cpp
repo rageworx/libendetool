@@ -15,12 +15,6 @@
 
 const char*  LZMAT_COMPRESS_HEADER = "LZMT";
 
-typedef struct
-{
-    unsigned int srcsize;
-    char*        buffer;
-}CompBlk;
-
 ///////////////////////////////////////////////////////////////
 
 EnDeTool::EnDeTool()
@@ -92,7 +86,7 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
                      (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
-    int tmpCiperLen  = srcsize;
+    int tmpCiperLen  = srcsize + sizeof( unsigned int );
 
     if ( tmpCiperLen > AES_BLOCKLEN )
     {
@@ -100,7 +94,7 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     }
     else
     {
-        // Let minimal 16 bytes
+        // Minimal size equals AES_BLOCKLEN.
         tmpCiperLen = AES_BLOCKLEN;
     }
 
@@ -117,14 +111,16 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     }
 #endif
 
-    CompBlk* pcb = new CompBlk;
-    if ( pcb == NULL )
-        return 0;
+    char* encptr = new char[ tmpCiperLen ];
 
-    pcb->srcsize = srcsize;
-    pcb->buffer = new char[ tmpCiperLen + 1 ];
-    memset( pcb->buffer, 0, tmpCiperLen + 1 );
-    memcpy( pcb->buffer, src, srcsize );
+    if ( encptr == NULL )
+    {
+        return 0;
+    }
+
+    memset( encptr, 0, tmpCiperLen );
+    memcpy( &encptr[0], &srcsize, sizeof(unsigned int) );
+    memcpy( &encptr[sizeof(unsigned int)], src, srcsize );
 
     int encloop = tmpCiperLen / AES_BLOCKLEN;
     if ( encloop == 0 )
@@ -135,33 +131,30 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     for ( int cnt=0; cnt<encloop; cnt++ )
     {
         AES_CBC_encrypt_buffer( actx,
-                                (uint8_t*)&pcb->buffer[ cnt*AES_BLOCKLEN ],
+                                (uint8_t*)&encptr[ cnt*AES_BLOCKLEN ],
                                 AES_BLOCKLEN );
     }
 
 	if ( doingcompress == true )
 	{
-		unsigned comsz = compressbuffer( pcb->buffer, tmpCiperLen );
-        
-        out = new char[ comsz + 4 ];
-        if ( out != NULL )
+		unsigned comsz = compressbuffer( encptr, tmpCiperLen );
+        if ( comsz > 0 )
         {
-            memcpy( &out[0], &pcb->srcsize, 4 );
-            memcpy( &out[4], pcb->buffer, comsz );
-            delete[] pcb->buffer;
-            delete pcb;
-
-            return comsz + 4;
+            out = (char*)encptr;
+            return comsz;
         }
         else
         {
             // Error case.
+            if ( encptr != NULL )
+                delete[] encptr;
             return 0;
         }
 	}
-
-    out = pcb->buffer;
-    delete pcb;
+    else
+    {
+        out = (char*)encptr;
+    }
 
     return tmpCiperLen;
 }
@@ -172,7 +165,7 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
         return -1;
 
 	char*           decbuff     = (char*)src;
-	unsigned        decbuffsz   = srcsize - 4;
+	unsigned        decbuffsz   = srcsize;
 	bool            need2free   = false;
     unsigned int    realsz      = 0;
 
@@ -206,9 +199,13 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
         out = NULL;
     }
 
-    out = new char[ decbuffsz + 1 ];
-    memset( out, 0, decbuffsz + 1 );
-    memcpy( out, decbuff, decbuffsz );
+    uint8_t* decptr = new uint8_t[ decbuffsz ];
+
+    if ( decptr == NULL )
+        return 0;
+
+    memset( decptr, 0, decbuffsz );
+    memcpy( decptr, decbuff, decbuffsz );
 
 	if ( need2free == true )
 	{
@@ -225,14 +222,29 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
     for (int cnt=0; cnt<decloop; cnt++ )
     {
         AES_CBC_decrypt_buffer( actx,
-                                (uint8_t*)&out[cnt * AES_BLOCKLEN],
+                                &decptr[cnt * AES_BLOCKLEN],
                                 AES_BLOCKLEN );
     }
 
-    if ( realsz>0 )
-        return realsz;
+    memcpy( &realsz, &decptr[0], sizeof( unsigned int ) );
 
-    return decbuffsz;
+    if ( realsz > decbuffsz )
+    {
+        // this must be error case.
+        delete decptr;
+        return 0;
+    }
+
+    out = new char[ realsz ];
+    if ( out == NULL )
+    {
+        delete decptr;
+        return 0;
+    }
+
+    memcpy( out, &decptr[sizeof(unsigned int)], realsz );
+
+    return (int)realsz;
 }
 
 void EnDeTool::text( const char* srctext )

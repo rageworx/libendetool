@@ -12,10 +12,6 @@ if [ "${TESTRUN}" == "" ];then
     exit 0
 fi
 
-#ENCDATA=$(shell ${ENDECMD} --key=${KEY} --verboseoff ${SRC})
-#DECDATA=$(shell bin/endecmd --key=${KEY} --decode --verboseoff ${ENCDATA})
-#COMENCDATA=$(shell ${ENDECMD} --key=${KEY} --verboseoff --compress ${SRC})
-#COMDECDATA=$(shell ${ENDECMD} --key=${KEY} --verboseoff --decode --compress ${COMENCDATA})
 ENCDATA=$(${ENDECMD} --key=${KEY} --verboseoff ${SRC})
 DECDATA=$(${ENDECMD} --key=${KEY} --decode --verboseoff ${ENCDATA})
 COMENCDATA=$(${ENDECMD} --key=${KEY} --verboseoff --compress ${SRC})

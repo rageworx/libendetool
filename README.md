@@ -9,11 +9,15 @@
 
 ## Latest Update 
 
+* 01-Dec-2019
+    - Hided original size of data.
+	- Version 1.0.3.0 not compatible with previous encrypted data.
+
+## Previous Update 
+
 * 21-Nov-2019
     - Fixed decode binary returns not original buffer size.
 	- version updated to 1.0.2.2
-
-## Previous Update 
 
 * 19-Nov-2019
     - Fixed an error case on libende size check modulates zero.
