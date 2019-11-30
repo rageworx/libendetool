@@ -22,11 +22,12 @@ using namespace std;
 
 string	me_path;
 string	me_name;
-string	me_version = "0.2.1.8";
+string	me_version = "0.2.5.12";
 string	ende_key;
 string	ende_data;
 string  ende_file_src;
 string  ende_file_dst;
+string  ende_srcfile;
 
 bool    opt_decode = false;
 bool	opt_verbose_off = false;
@@ -34,6 +35,7 @@ bool	opt_nobase64 = false;
 bool    opt_showhelp = false;
 bool	opt_file = false;
 bool    opt_compress = false;
+string  opt_outfile;
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +56,53 @@ string TrimRight(const std::string& s)
 string Trim(const std::string& s)
 {
     return TrimRight(TrimLeft(s));
+}
+
+void readfile()
+{
+    ende_srcfile = ende_data;
+    ende_data.clear();
+
+    FILE* fp = fopen( ende_srcfile.c_str(), "rb" );
+    if ( fp != NULL )
+    {
+        fseek( fp, 0L, SEEK_END );
+        unsigned fsz = ftell( fp );
+        rewind( fp );
+
+        if ( fsz > 0 )
+        {
+            char* fbuff = new char[ fsz ];
+            if ( fbuff != NULL )
+            {
+                fread( fbuff, 1, fsz, fp );
+                ende_data.assign( fbuff, fsz );
+            }
+            fclose( fp );
+        }
+    }
+}
+
+bool writefile( const char* b, int l )
+{
+    if ( ( b == NULL ) || ( l <= 0 ) ) 
+        return false;
+
+    if ( opt_outfile.size() == 0 )
+    {
+        opt_outfile = ende_srcfile + ".out";
+    }
+
+    FILE* fp = fopen( opt_outfile.c_str(), "wb" );
+    if ( fp != NULL )
+    {
+        fwrite( b, 1, l , fp );
+        fclose( fp );
+
+        return true;
+    }
+
+    return false;
 }
 
 void parseArgs( int argc, char** argv )
@@ -113,9 +162,21 @@ void parseArgs( int argc, char** argv )
 			{
 				opt_compress = true;
 			}
+            else
+            if ( strtmp.find( "--file" ) == 0 )
+            {
+                opt_file = true;
+            }
 			else
 			{
-				ende_data = strtmp;
+                if ( ende_data.size() == 0 )
+                {
+                    ende_data = strtmp;
+                }
+                else
+                {
+                    opt_outfile = strtmp;
+                }
 			}
 		}
 	}
@@ -138,7 +199,7 @@ void printArgsHelp()
 {
 	if ( opt_verbose_off == false )
 	{
-		printf( "\tusage : %s [ options ] ( string )\n", me_name.c_str() );
+		printf( "\tusage : %s [ options ] ( string or source filename ) ( out filename )\n", me_name.c_str() );
 		printf( "\n" );
 		printf( "\t_options_\n" );
 		printf( "\n" );
@@ -146,6 +207,7 @@ void printArgsHelp()
 		printf( "\t  --verboseoff : turns off all information except en/decoded.\n" );
 		printf( "\t  --decode     : decodes source string\n" );
 		printf( "\t  --compress   : compressed encryption\n" );
+        printf( "\t  --file       : open file\n" );
 		printf( "\n" );
 	}
 }
@@ -161,6 +223,21 @@ int main( int argc, char** argv )
 		printArgsHelp();
 		return 0;
 	}
+
+    if ( opt_file == true )
+    {
+        readfile();
+        if ( ende_data.size() == 0 )
+        {
+            if ( opt_verbose_off == false )
+            {
+                printf( "Failed to read file : %s\n", 
+                        ende_srcfile.c_str() );
+            }
+            return -1;
+        }
+    }
+
 #ifdef DEBUG
     printf( "debug-key:[%s]\n", ende_key.c_str() );
 #endif /// of DEBUG
@@ -173,31 +250,64 @@ int main( int argc, char** argv )
 		
 		if( opt_decode == true )
 		{
-			ende->encodedtext( ende_data.c_str() );
-			
-			const char* strdec = ende->text();
+            if ( opt_file == false )
+            {
+                ende->encodedtext( ende_data.c_str() );
+                
+                const char* strdec = ende->text();
 
-			if ( strdec != NULL )
-			{
-				string strtrimmed = Trim( strdec );
-				printf( "%s", strtrimmed.c_str() );
-			}
-			else
-			{
-				printf( "decode failure.\n" );
-			}
+                if ( strdec != NULL )
+                {
+                    string strtrimmed = Trim( strdec );
+                    printf( "%s", strtrimmed.c_str() );
+                }
+                else
+                {
+                    if ( opt_verbose_off == false )
+                    {
+                        printf( "decode failure.\n" );
+                    }
+                }
+            }
+            else
+            {
+                char* outb = NULL;
+                int esz = ende->decodebinary( ende_data.c_str(), 
+                                              ende_data.size(),
+                                              outb );
+                if ( ( esz > 0 ) && ( outb != NULL ) )
+                {
+                    writefile( outb, esz );
+                    delete[] outb;
+                }
+            }
 		}
 		else
 		{
-			ende->text( ende_data.c_str() );
+            if ( opt_file == false )
+            {
+                ende->text( ende_data.c_str() );
 
-			const char* strenc = ende->encodedtext();
+                const char* strenc = ende->encodedtext();
 
-			if ( strenc != NULL )
-			{
-				string strtrimmed = Trim( strenc );
-				printf( "%s", strtrimmed.c_str() );
-			}
+                if ( strenc != NULL )
+                {
+                    string strtrimmed = Trim( strenc );
+                    printf( "%s", strtrimmed.c_str() );
+                }
+            }
+            else
+            {
+                char* outb = NULL;
+                int esz = ende->encodebinary( ende_data.c_str(),
+                                              ende_data.size(),
+                                              outb );
+                if ( ( esz > 0 ) && ( outb != NULL ) )
+                {
+                    writefile( outb, esz );
+                    delete[] outb;
+                }
+            }
 		}
 
 		if ( opt_verbose_off == false )
