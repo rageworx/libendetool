@@ -584,18 +584,18 @@ unsigned EnDeTool::decompressbuffer( char* &buff, unsigned blen )
         if ( strncmp( buff, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
         {
             //Check original size.
-            MP_U32 olen = 0;
-            memcpy( &olen, buff + 4, 4 );
+            MP_U32* olen = (MP_U32*)&buff[4];
 
             if ( olen > 0 )
             {
                 MP_U8* rebuff = (MP_U8*)buff + 8;
                 MP_U32 rebufflen = blen - 8;
 
-                MP_U8* debuff = new MP_U8[ olen ];
+                MP_U8* debuff = new MP_U8[ *olen ];
                 if ( debuff != NULL )
                 {
-                    int retcode = lzmat_decode( debuff, &olen,
+                    MP_U32 debufflen = *olen;
+                    int retcode = lzmat_decode( debuff, &debufflen,
                                                 rebuff, rebufflen );
 
                     if ( retcode == LZMAT_STATUS_OK )
@@ -603,7 +603,7 @@ unsigned EnDeTool::decompressbuffer( char* &buff, unsigned blen )
                         delete[] buff;
                         buff = (char*)debuff;
 
-                        return olen;
+                        return *olen;
                     }
                 }
             }
