@@ -119,8 +119,8 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     }
 
     memset( encptr, 0, tmpCiperLen );
-    memcpy( &encptr[0], &srcsize, sizeof(unsigned int) );
-    memcpy( &encptr[sizeof(unsigned int)], src, srcsize );
+    memcpy( &encptr[0], &srcsize, 4 );
+    memcpy( &encptr[4], src, srcsize );
 
     int encloop = tmpCiperLen / AES_BLOCKLEN;
     if ( encloop == 0 )
@@ -170,19 +170,27 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
     unsigned int    realsz      = 0;
 
 	// checks is it compressed ..
-	if ( strncmp( &src[4], LZMAT_COMPRESS_HEADER, 4 ) == 0 )
+	if ( strncmp( &src[0], LZMAT_COMPRESS_HEADER, 0 ) == 0 )
 	{
-        realsz = *(unsigned int*)src;
-		decbuff = new char[ srcsize - 4 ];
+	    memcpy( &realsz, &src[4], 4 );
+	    if ( realsz == 0 )
+            return -1;
+
+        // reallocate buffer for decompress buffer.
+        decbuff = NULL;
+		decbuff = new char[ srcsize ];
 
 		if ( decbuff == NULL )
-			return -1;
+		    return -1;
 
-		memcpy( decbuff, &src[4], srcsize - 4 );
-		decbuffsz = decompressbuffer( decbuff, srcsize - 4 );
+		memcpy( decbuff, src, srcsize );
+		decbuffsz = decompressbuffer( decbuff, srcsize );
 
 		if ( decbuffsz < AES_BLOCKLEN )
-			return -2;
+        {
+            delete[] decbuff;
+            return -2;
+        }
 
 		need2free = true;
 	}
@@ -586,16 +594,16 @@ unsigned EnDeTool::decompressbuffer( char* &buff, unsigned blen )
             //Check original size.
             MP_U32* olen = (MP_U32*)&buff[4];
 
-            if ( olen > 0 )
+            if ( *olen > 0 )
             {
+                MP_U32 buffolen = *olen;
                 MP_U8* rebuff = (MP_U8*)buff + 8;
                 MP_U32 rebufflen = blen - 8;
 
-                MP_U8* debuff = new MP_U8[ *olen ];
+                MP_U8* debuff = new MP_U8[ buffolen ];
                 if ( debuff != NULL )
                 {
-                    MP_U32 debufflen = *olen;
-                    int retcode = lzmat_decode( debuff, &debufflen,
+                    int retcode = lzmat_decode( debuff, &buffolen,
                                                 rebuff, rebufflen );
 
                     if ( retcode == LZMAT_STATUS_OK )
@@ -603,7 +611,7 @@ unsigned EnDeTool::decompressbuffer( char* &buff, unsigned blen )
                         delete[] buff;
                         buff = (char*)debuff;
 
-                        return *olen;
+                        return buffolen;
                     }
                 }
             }

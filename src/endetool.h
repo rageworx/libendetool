@@ -5,12 +5,12 @@
 // EnDeTool for Crypting data with AES256-CBC and BASE64.
 // ===========================================================================
 // A Front-End of C++ class library for gcc/MinGW
-// (C)Copyright 2014, 2019 Raphael Kim.
+// (C)Copyright 2014 to 2020 Raphael Kim.
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Version means 1.0.3.0
-#define ENDETOOL_VERSION    (0x01000300)
+// Version means 1.0.3.2
+#define ENDETOOL_VERSION    (0x01000302)
 
 class EnDeTool
 {
