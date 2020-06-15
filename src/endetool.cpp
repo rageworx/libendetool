@@ -119,7 +119,7 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     }
 
     memset( encptr, 0, tmpCiperLen );
-    memcpy( &encptr[0], &srcsize, 4 );
+    memcpy( encptr, &srcsize, 4 );
     memcpy( &encptr[4], src, srcsize );
 
     int encloop = tmpCiperLen / AES_BLOCKLEN;
@@ -170,7 +170,7 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
     unsigned int    realsz      = 0;
 
 	// checks is it compressed ..
-	if ( strncmp( &src[0], LZMAT_COMPRESS_HEADER, 0 ) == 0 )
+	if ( strncmp( src, LZMAT_COMPRESS_HEADER, 0 ) == 0 )
 	{
 	    memcpy( &realsz, &src[4], 4 );
 	    if ( realsz == 0 )
