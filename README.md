@@ -9,11 +9,15 @@
 
 ## Latest Update 
 
+* 16-June-2020
+	- Version 1.0.3.3
+	- Fixed variable bugs.
+
+## Previous Update 
+
 * 01-Dec-2019
     - Hided original size of data.
 	- Version 1.0.3.0 not compatible with previous encrypted data.
-
-## Previous Update 
 
 * 21-Nov-2019
     - Fixed decode binary returns not original buffer size.
