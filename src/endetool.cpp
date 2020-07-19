@@ -13,7 +13,11 @@
 
 ///////////////////////////////////////////////////////////////
 
-const char*  LZMAT_COMPRESS_HEADER = "LZMT";
+#define LIBENDETOOL_MAX_STRING_LENGTH       65535
+
+///////////////////////////////////////////////////////////////
+
+const unsigned int  LZMAT_COMPRESS_HEADER   = 0x544D5A4C;
 
 ///////////////////////////////////////////////////////////////
 
@@ -21,6 +25,9 @@ EnDeTool::EnDeTool()
  : origintext(NULL),
    encrypttext(NULL),
    cryptcontext(NULL),
+   origintextlen(0),
+   encryptedtextlen(0),
+   paddedorigintextlen(0),
    isencoded(false),
    doingcompress(false)
 {
@@ -72,12 +79,12 @@ void EnDeTool::reset()
 
 void EnDeTool::compress( bool enabled )
 {
-	doingcompress = enabled;
+    doingcompress = enabled;
 }
 
-int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
+long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 {
-    if ( ( src == NULL ) || ( srcsize == 0 ) )
+    if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
         return -1;
 
     generateiv();
@@ -86,22 +93,44 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
                      (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
-    int tmpCiperLen  = srcsize + sizeof( unsigned int );
+    unsigned encbuffsz = srcsize;
+    char* encbuff = new char[ srcsize + 4 ];
+    if ( encbuff == NULL )
+        return -2;
 
-    if ( tmpCiperLen > AES_BLOCKLEN )
+    // [----4----][---- + srcsize .... ]
+    // srcsize    data ...
+    memcpy( encbuff, &srcsize, 4 );
+    memcpy( &encbuff[4], src, srcsize );
+
+    if ( doingcompress == true )
+    {
+        encbuffsz = compressbuffer( encbuff, srcsize + 4 );
+        if ( encbuffsz == 0 ) /// failure case.
+        {
+            return -3; /// decompress failure.
+        }
+    }
+
+    unsigned tmpCiperLen  = encbuffsz;
+
+    if ( tmpCiperLen % AES_BLOCKLEN  > 0 )
     {
         tmpCiperLen += AES_BLOCKLEN - ( tmpCiperLen % AES_BLOCKLEN );
     }
-    else
-    {
-        // Minimal size equals AES_BLOCKLEN.
-        tmpCiperLen = AES_BLOCKLEN;
-    }
 
-    if ( out != NULL )
+    // resizing padded by AES_BLOCKLEN.
+    if ( tmpCiperLen > encbuffsz )
     {
-        delete[] out;
-        out = NULL;
+        char* swapbuff = new char[ tmpCiperLen ];
+        if ( swapbuff == NULL )
+        {
+            return -4; /// cannot allocate swap buffer.
+        }
+        memset( swapbuff, 0, tmpCiperLen );
+        memcpy( swapbuff, encbuff, encbuffsz );
+        delete[] encbuff;
+        encbuff = swapbuff;
     }
 
 #ifdef DEBUG
@@ -111,148 +140,110 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     }
 #endif
 
-    char* encptr = new char[ tmpCiperLen ];
-
-    if ( encptr == NULL )
-    {
-        return 0;
-    }
-
-    memset( encptr, 0, tmpCiperLen );
-    memcpy( encptr, &srcsize, 4 );
-    memcpy( &encptr[4], src, srcsize );
-
-    int encloop = tmpCiperLen / AES_BLOCKLEN;
+    unsigned encloop = tmpCiperLen / AES_BLOCKLEN;
     if ( encloop == 0 )
     {
+        // it should be an error.
         encloop = 1;
     }
 
-    for ( int cnt=0; cnt<encloop; cnt++ )
+    for ( unsigned cnt=0; cnt<encloop; cnt++ )
     {
         AES_CBC_encrypt_buffer( actx,
-                                (uint8_t*)&encptr[ cnt*AES_BLOCKLEN ],
+                                (uint8_t*)&encbuff[ cnt*AES_BLOCKLEN ],
                                 AES_BLOCKLEN );
     }
 
-	if ( doingcompress == true )
-	{
-		unsigned comsz = compressbuffer( encptr, tmpCiperLen );
-        if ( comsz > 0 )
-        {
-            out = (char*)encptr;
-            return comsz;
-        }
-        else
-        {
-            // Error case.
-            if ( encptr != NULL )
-                delete[] encptr;
-            return 0;
-        }
-	}
-    else
-    {
-        out = (char*)encptr;
-    }
-
-    return tmpCiperLen;
+    out = encbuff;
+    return (long long)tmpCiperLen;
 }
 
-int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
+long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 {
     if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
         return -1;
 
-	char*           decbuff     = (char*)src;
-	unsigned        decbuffsz   = srcsize;
-	bool            need2free   = false;
+    unsigned        decbuffsz   = srcsize;
     unsigned int    realsz      = 0;
 
-	// checks is it compressed ..
-	if ( strncmp( src, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
-	{
-	    memcpy( &realsz, &src[4], 4 );
-	    if ( realsz == 0 )
-            return -1;
-
-        // reallocate buffer for decompress buffer.
-        decbuff = NULL;
-		decbuff = new char[ srcsize ];
-
-		if ( decbuff == NULL )
-		    return -1;
-
-		memcpy( decbuff, src, srcsize );
-		decbuffsz = decompressbuffer( decbuff, srcsize );
-
-		if ( decbuffsz < AES_BLOCKLEN )
-        {
-            delete[] decbuff;
-            return -2;
-        }
-
-		need2free = true;
-	}
-
+    // decode cipher first.
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
     AES_init_ctx_iv( actx,
                      (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
-    if ( out != NULL )
-    {
-        delete[] out;
-        out = NULL;
-    }
-
-    uint8_t* decptr = new uint8_t[ decbuffsz ];
+    char* decptr = new char[ decbuffsz ];
 
     if ( decptr == NULL )
-        return 0;
+        return -2; /// memory allocation failure.
 
-    memset( decptr, 0, decbuffsz );
-    memcpy( decptr, decbuff, decbuffsz );
-
-	if ( need2free == true )
-	{
-		delete[] decbuff;
-	}
+    memcpy( decptr, src, decbuffsz );
 
     int decloop = decbuffsz / AES_BLOCKLEN;
 
     if ( decloop == 0 )
     {
+        // it should be an error.
         decloop = 1;
     }
 
-    for (int cnt=0; cnt<decloop; cnt++ )
+    for ( unsigned cnt=0; cnt<decloop; cnt++ )
     {
         AES_CBC_decrypt_buffer( actx,
-                                &decptr[cnt * AES_BLOCKLEN],
+                                (uint8_t*)&decptr[cnt * AES_BLOCKLEN],
                                 AES_BLOCKLEN );
     }
 
-    memcpy( &realsz, &decptr[0], sizeof( unsigned int ) );
-
-    if ( realsz > decbuffsz )
+    // checks is it compressed ..
+    if ( memcmp( decptr, &LZMAT_COMPRESS_HEADER, 4 ) == 0 )
     {
-        // this must be error case.
-        delete decptr;
-        return 0;
+        unsigned worksz = srcsize - 4;
+
+        // reallocate buffer for decompress buffer.
+        decbuffsz = decompressbuffer( decptr, worksz );
+
+        if ( decbuffsz < AES_BLOCKLEN )
+        {
+            delete[] decptr;
+            return -4; /// decompress buffer error.
+        }
+
+        memcpy( &realsz, decptr, 4 );
+
+        if ( realsz == 0 )
+        {
+            return -5; /// checking compressed buffer size check error.
+        }
+
+        if ( realsz != ( decbuffsz - 4 ) )
+        {
+            realsz = decbuffsz - 4;
+        }
+    }
+    else
+    {
+        memcpy( &realsz, decptr, 4 );
     }
 
-    out = new char[ realsz ];
-    if ( out == NULL )
+    if ( realsz > 0 )
     {
-        delete decptr;
-        return 0;
+        out = new char[ realsz + 1 ];
+        if ( out != NULL )
+        {
+            memset( out, 0, realsz + 1 );
+            memcpy( out, &decptr[4], realsz );
+            delete[] decptr;
+
+            realsz ++;
+        }
+        else
+        {
+            realsz = 0;
+        }
     }
 
-    memcpy( out, &decptr[sizeof(unsigned int)], realsz );
-
-    return (int)realsz;
+    return realsz;
 }
 
 void EnDeTool::text( const char* srctext )
@@ -264,17 +255,30 @@ void EnDeTool::text( const char* srctext )
     {
         delete[] origintext;
         origintext = NULL;
+        origintextlen = 0;
+        paddedorigintextlen = 0;
 
         isencoded = false;
     }
 
-    int srclen = strlen( srctext ) + 1;
-    origintext = new char[ srclen ];
+    origintextlen = strlen( srctext );
+
+    if ( origintextlen >= LIBENDETOOL_MAX_STRING_LENGTH )
+        return;
+
+    // padding size by AES_BLOCKLEN
+    paddedorigintextlen = origintextlen;
+
+    if ( origintextlen % AES_BLOCKLEN > 0 )
+    {
+         paddedorigintextlen += AES_BLOCKLEN - ( origintextlen % AES_BLOCKLEN );
+    }
+
+    origintext = new char[ paddedorigintextlen ];
     if ( origintext != NULL )
     {
-        memset( origintext, 0, srclen );
-        strcpy( origintext, srctext );
-
+        memset( origintext, 0, paddedorigintextlen );
+        memcpy( origintext, srctext, origintextlen );
         isencoded = encode();
     }
     else
@@ -294,7 +298,11 @@ void EnDeTool::encodedtext( const char* srctext )
         encrypttext = NULL;
     }
 
-    int srclen = strlen( srctext ) + 1;
+    unsigned srclen = strlen( srctext ) + 1;
+
+    if ( srclen >= LIBENDETOOL_MAX_STRING_LENGTH )
+        return;
+
     encrypttext = new char[ srclen ];
     if ( encrypttext != NULL )
     {
@@ -345,99 +353,41 @@ void EnDeTool::cryptkey( const char* key, const char* iv )
 
 bool EnDeTool::encode()
 {
-    if ( strlen(encryptkey) == 0 )
+    if ( ( paddedorigintextlen == 0 ) || ( origintextlen == 0 ) )
         return false;
 
-    if ( cryptcontext == NULL )
-        return false;
+    char* tmpEncBuff = NULL;
 
-    generateiv();
-    AES_ctx* actx = (AES_ctx*)cryptcontext;
-    AES_init_ctx_iv( actx,
-                     (const uint8_t*)encryptkey ,
-                     (const uint8_t*)encryptiv );
-
-    int   srcLen       = strlen(origintext);
-    int   tmpCiperLen  = srcLen;
-
-    // AES-256 encodes 16 bytes in once.
-    // Make buffer pads with 16 multiply.
-    if ( tmpCiperLen > AES_BLOCKLEN )
+    int tmpEncLen = (int)encodebinary( origintext, paddedorigintextlen, tmpEncBuff );
+    if ( tmpEncLen > 0 )
     {
-        if ( ( tmpCiperLen % AES_BLOCKLEN ) != 0 )
+        char* tmpBase64Buff = NULL;
+        int retI = base64_encode( tmpEncBuff, tmpEncLen, &tmpBase64Buff );
+        if ( retI > 0 )
         {
-            tmpCiperLen += AES_BLOCKLEN - ( tmpCiperLen % AES_BLOCKLEN );
-        }
-    }
-    else
-    {
-        // Let minimal 16 bytes
-        tmpCiperLen = AES_BLOCKLEN;
-    }
+            if ( encrypttext != NULL )
+            {
+                delete[] encrypttext;
+                encrypttext = NULL;
+            }
 
-    int retI = 0;
-    char* tmpBase64Buff = NULL;
-    char* tmpCiperBuff = new char[ tmpCiperLen + 1 ];
-    if ( tmpCiperBuff != NULL )
-    {
-        memset( tmpCiperBuff, 0, tmpCiperLen + 1 );
-        memcpy( tmpCiperBuff, origintext, srcLen );
-
-        int encloop = tmpCiperLen / AES_BLOCKLEN;
-        if ( encloop == 0 )
-        {
-            encloop = 1;
+            encrypttext = new char[ retI + 1 ];
+            if ( encrypttext != NULL )
+            {
+                memset( encrypttext, 0, retI + 1 );
+                strncpy( encrypttext, tmpBase64Buff, retI );
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        for ( int cnt=0; cnt<encloop; cnt++ )
+        if ( tmpBase64Buff != NULL )
         {
-            AES_CBC_encrypt_buffer( actx,
-			                        (uint8_t*)&tmpCiperBuff[ cnt * AES_BLOCKLEN ],
-                                    AES_BLOCKLEN );
+            delete[] tmpBase64Buff;
+            tmpBase64Buff = NULL;
         }
-
-		if ( doingcompress == true )
-		{
-			unsigned comsz = compressbuffer( tmpCiperBuff, tmpCiperLen );
-			if ( comsz > 0 )
-			{
-				tmpCiperLen = comsz;
-			}
-		}
-
-        int outBase64Len = tmpCiperLen * 2;
-
-        retI = base64_encode( tmpCiperBuff, tmpCiperLen, &tmpBase64Buff );
-
-        delete[] tmpCiperBuff;
-        tmpCiperBuff = NULL;
-    }
-    else
-    {
-        return false;
-    }
-
-    if ( ( retI > 0 ) && ( tmpBase64Buff != NULL ) )
-    {
-        if ( encrypttext != NULL )
-        {
-            delete[] encrypttext;
-            encrypttext = NULL;
-        }
-
-        encrypttext = new char[ retI + 1 ];
-        if ( encrypttext != NULL )
-        {
-            memset( encrypttext, 0, retI + 1 );
-            strncpy( encrypttext, tmpBase64Buff, retI );
-        }
-        else
-        {
-            return false;
-        }
-
-        free( tmpBase64Buff );
-        tmpBase64Buff = NULL;
 
         return true;
     }
@@ -447,22 +397,7 @@ bool EnDeTool::encode()
 
 bool EnDeTool::decode()
 {
-    if ( strlen(encryptkey) == 0 )
-        return false;
-
-    if ( cryptcontext == NULL )
-        return false;
-
-    if ( encrypttext == NULL )
-        return false;
-
-    generateiv();
-    AES_ctx* actx = (AES_ctx*)cryptcontext;
-    AES_init_ctx_iv( actx,
-                     (const uint8_t*)encryptkey ,
-                     (const uint8_t*)encryptiv );
-
-    int tmpCiperLen  = strlen(encrypttext);
+    unsigned tmpCiperLen  = strlen(encrypttext);
     if ( tmpCiperLen == 0 )
         return false;
 
@@ -472,6 +407,7 @@ bool EnDeTool::decode()
         return false;
 
     memset( tmpCiperBuff, 0, tmpCiperLen + 1 );
+
     int retI = base64_decode( encrypttext, (unsigned char*)tmpCiperBuff, tmpCiperLen );
     if ( retI == 0 )
         return false;
@@ -482,38 +418,22 @@ bool EnDeTool::decode()
         origintext = NULL;
     }
 
-	// checks is it compressed ..
-	if ( strncmp( tmpCiperBuff, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
-	{
-		unsigned decsz = decompressbuffer( tmpCiperBuff, tmpCiperLen );
-		if ( decsz > 0 )
-		{
-			tmpCiperLen = decsz;
-			retI = decsz;
-		}
-	}
+    char* tmpDecdBuff = NULL;
 
-    int decloop = tmpCiperLen / AES_BLOCKLEN;
-    if ( decloop == 0 )
+    long long declen = decodebinary( tmpCiperBuff, (unsigned)retI, tmpDecdBuff );
+    if ( declen > 0 )
     {
-        decloop = 1;
+        delete[] tmpCiperBuff;
+        origintext = tmpDecdBuff;
+        return true;
     }
 
-    for (int cnt=0; cnt<decloop; cnt++ )
+    if ( tmpCiperBuff != NULL )
     {
-        AES_CBC_decrypt_buffer( actx,
-                                (uint8_t*)&tmpCiperBuff[cnt * AES_BLOCKLEN],
-                                AES_BLOCKLEN );
+        delete[] tmpCiperBuff;
     }
 
-    // Let make it erase wrong buffers.
-    int clearLen = tmpCiperLen - retI;
-
-    memset( &tmpCiperBuff[retI], 0, clearLen );
-
-    origintext = tmpCiperBuff;
-
-    return true;
+    return false;
 }
 
 #ifdef DEBUG
@@ -566,7 +486,7 @@ unsigned EnDeTool::compressbuffer( char* &buff, unsigned blen )
                 if ( switchbuff != NULL )
                 {
                     // put header
-                    memcpy( switchbuff + 0, LZMAT_COMPRESS_HEADER, 4 );
+                    memcpy( switchbuff + 0, &LZMAT_COMPRESS_HEADER, 4 );
                     memcpy( switchbuff + 4, &blen, 4 );
                     memcpy( switchbuff + 8, compbuff, complen );
                     delete[] buff;
@@ -589,7 +509,7 @@ unsigned EnDeTool::decompressbuffer( char* &buff, unsigned blen )
     if ( ( buff != NULL ) && ( blen > 8 ) )
     {
         // check header
-        if ( strncmp( buff, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
+        if ( memcmp( buff, &LZMAT_COMPRESS_HEADER, 4 ) == 0 )
         {
             //Check original size.
             MP_U32* olen = (MP_U32*)&buff[4];

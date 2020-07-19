@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="endetest" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/endetest_d" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+				<Linker>
+					<Add library="endetool_d" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/endetest" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="endetool" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="src" />
+			<Add directory="src/aes256" />
+			<Add directory="src/base64" />
+			<Add directory="src/lzmat" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add directory="lib" />
+		</Linker>
+		<Unit filename="src/endetool.h" />
+		<Unit filename="test/test.cpp" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>

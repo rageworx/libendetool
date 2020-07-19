@@ -4,7 +4,7 @@ GCC=gcc
 GPP=g++
 
 TARGET=endecmd
-CFLAGS+=-O3 -s
+LFLAGS+=-O2 -s
 LFLAGS+=-static -mtune=native -lpthread
 
 DIRSRC=src

@@ -7,10 +7,13 @@
 // A Front-End of C++ class library for gcc/MinGW
 // (C)Copyright 2014 to 2020 Raphael Kim.
 //
+// [ WARNING ]
+// * 1.1.x does not compatibles with 1.0.x
+//
 ////////////////////////////////////////////////////////////////////////////////
 
-// Version means 1.0.3.3
-#define ENDETOOL_VERSION    (0x01000303)
+// Version means 1.1.0.5
+#define ENDETOOL_VERSION    (0x01010005)
 
 class EnDeTool
 {
@@ -26,8 +29,8 @@ class EnDeTool
         void encodedtext( const char* srctext );
 
     public:
-        int  encodebinary( const char* src, unsigned srcsize, char* &out );
-        int  decodebinary( const char* src, unsigned srcsize, char* &out );
+        long long encodebinary( const char* src, unsigned srcsize, char* &out );
+        long long decodebinary( const char* src, unsigned srcsize, char* &out );
 
     public:
         bool        compress()      { return doingcompress; }
@@ -42,13 +45,16 @@ class EnDeTool
         unsigned    decompressbuffer( char* &buff, unsigned blen );
 
     protected:
-        char  encryptkey[32];
-        char  encryptiv[32];
-        char* origintext;
-        char* encrypttext;
-        void* cryptcontext;
-        bool  isencoded;
-        bool  doingcompress;
+        char        encryptkey[32];
+        char        encryptiv[32];
+        char*       origintext;
+        char*       encrypttext;
+        unsigned    origintextlen;
+        unsigned    paddedorigintextlen;
+        unsigned    encryptedtextlen;
+        void*       cryptcontext;
+        bool        isencoded;
+        bool        doingcompress;
 
     protected:
         bool encode();

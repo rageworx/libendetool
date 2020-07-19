@@ -17,7 +17,6 @@ DECDATA=$(${ENDECMD} --key=${KEY} --decode --verboseoff ${ENCDATA})
 COMENCDATA=$(${ENDECMD} --key=${KEY} --verboseoff --compress ${SRC})
 COMDECDATA=$(${ENDECMD} --key=${KEY} --verboseoff --decode --compress ${COMENCDATA})
 
-
 echo "source : ${SRC}"
 echo "key : ${KEY}"
 echo "encoded : ${ENCDATA}"

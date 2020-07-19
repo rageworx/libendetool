@@ -46,3 +46,4 @@ vc11prj/Lib/
 .vs
 *.depend
 *.layout
+*.cscope_file_list
