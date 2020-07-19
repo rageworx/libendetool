@@ -9,11 +9,17 @@
 
 ## Latest Update 
 
+* 20-July-2020
+	- Version 1.1.0.5
+	- Big changes for doing compress buffer before AES-256 encoding when compression flag enabled.
+	- Compressed buffer may not compatible with version 1.0.3.3.
+	- Use seperately 1.0.3.3. and 1.1.0.5 if user using compressed option. 
+
+## Previous Update 
+
 * 16-June-2020
 	- Version 1.0.3.3
 	- Fixed variable bugs.
-
-## Previous Update 
 
 * 01-Dec-2019
     - Hided original size of data.
