@@ -144,7 +144,7 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
     unsigned int    realsz      = 0;
 
 	// checks is it compressed ..
-	if ( strncmp( src, LZMAT_COMPRESS_HEADER, 0 ) == 0 )
+	if ( strncmp( src, LZMAT_COMPRESS_HEADER, 4 ) == 0 )
 	{
         return -10; /// unsupported version.
 	}
