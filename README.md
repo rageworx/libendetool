@@ -9,11 +9,9 @@
 
 ## Latest Update 
 
-* 20-July-2020
-	- Version 1.1.0.5
-	- Big changes for doing compress buffer before AES-256 encoding when compression flag enabled.
-	- Compressed buffer may not compatible with version 1.0.3.3.
-	- Use seperately 1.0.3.3. and 1.1.0.5 if user using compressed option. 
+* 17-June-2020
+	- Version 1.0.3.3 ( NON-LZMAT )
+	- No LZMAT version fo license issue.
 
 ## Previous Update 
 

@@ -14,12 +14,9 @@ fi
 
 ENCDATA=$(${ENDECMD} --key=${KEY} --verboseoff ${SRC})
 DECDATA=$(${ENDECMD} --key=${KEY} --decode --verboseoff ${ENCDATA})
-COMENCDATA=$(${ENDECMD} --key=${KEY} --verboseoff --compress ${SRC})
-COMDECDATA=$(${ENDECMD} --key=${KEY} --verboseoff --decode --compress ${COMENCDATA})
 
 echo "source : ${SRC}"
 echo "key : ${KEY}"
 echo "encoded : ${ENCDATA}"
 echo "decoded : ${DECDATA}"
-echo "compressing encoded : ${COMENCDATA}"
-echo "compressing decoded : ${COMDECDATA}"
+echo "-done-"

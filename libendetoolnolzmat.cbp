@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="libendetool" />
+		<Option title="libendetool-nolzmat" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -36,10 +36,10 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-DNOLZMAT" />
 			<Add directory="src" />
 			<Add directory="src/aes256" />
 			<Add directory="src/base64" />
-			<Add directory="src/lzmat" />
 		</Compiler>
 		<Unit filename="src/aes256/aes.c">
 			<Option compilerVar="CC" />
@@ -53,13 +53,6 @@
 		<Unit filename="src/base64/base64.h" />
 		<Unit filename="src/endetool.cpp" />
 		<Unit filename="src/endetool.h" />
-		<Unit filename="src/lzmat/lzmat.h" />
-		<Unit filename="src/lzmat/lzmat_dec.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lzmat/lzmat_enc.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

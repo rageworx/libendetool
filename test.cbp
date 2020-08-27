@@ -41,6 +41,7 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-DNOLZMAT" />
 			<Add directory="src" />
 			<Add directory="src/aes256" />
 			<Add directory="src/base64" />

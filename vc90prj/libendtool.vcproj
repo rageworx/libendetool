@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				AdditionalIncludeDirectories="../src;../src/aes256;../src/base64;../src/lzmat"
+				AdditionalIncludeDirectories="../src;../src/aes256;../src/base64"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"
@@ -112,7 +112,7 @@
 				UseUnicodeResponseFiles="false"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../src;../src/aes256;../src/base64;../src/lzmat"
+				AdditionalIncludeDirectories="../src;../src/aes256;../src/base64"
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
 				ObjectFile="$(IntDir)\objs\"
@@ -173,14 +173,6 @@
 				RelativePath="..\src\endetool.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\src\lzmat\lzmat_dec.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\lzmat\lzmat_enc.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -201,10 +193,6 @@
 			</File>
 			<File
 				RelativePath="..\src\endetool.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\lzmat\lzmat.h"
 				>
 			</File>
 		</Filter>

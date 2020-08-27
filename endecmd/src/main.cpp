@@ -34,7 +34,6 @@ bool	opt_verbose_off = false;
 bool	opt_nobase64 = false;
 bool    opt_showhelp = false;
 bool	opt_file = false;
-bool    opt_compress = false;
 string  opt_outfile;
 
 ///////////////////////////////////////////////////////////////////////////
@@ -158,11 +157,6 @@ void parseArgs( int argc, char** argv )
 				opt_decode = true;
 			}
 			else
-			if ( strtmp.find( "--compress" ) == 0 )
-			{
-				opt_compress = true;
-			}
-            else
             if ( strtmp.find( "--file" ) == 0 )
             {
                 opt_file = true;
@@ -206,7 +200,6 @@ void printArgsHelp()
 		printf( "\t  --key=(encoding key for maximum 32 charactors)\n" );
 		printf( "\t  --verboseoff : turns off all information except en/decoded.\n" );
 		printf( "\t  --decode     : decodes source string\n" );
-		printf( "\t  --compress   : compressed encryption\n" );
         printf( "\t  --file       : open file\n" );
 		printf( "\n" );
 	}
@@ -245,8 +238,7 @@ int main( int argc, char** argv )
 	if ( ende != NULL )
 	{
 		ende->reset();
-		ende->compress( opt_compress );
-		ende->cryptkey( ende_key.c_str() );
+	    ende->cryptkey( ende_key.c_str() );
 		
 		if( opt_decode == true )
 		{

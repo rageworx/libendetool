@@ -53,13 +53,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../src;../src/aes256;../src/base64;../src/lzmat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../src;../src/aes256;../src/base64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ObjectFileName>$(IntDir)objs\</ObjectFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <PreprocessorDefinitions>_MBCS;NOLZMAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <UseUnicodeResponseFiles>false</UseUnicodeResponseFiles>
@@ -72,12 +73,13 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../src;../src/aes256;../src/base64;../src/lzmat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../src;../src/aes256;../src/base64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <ObjectFileName>$(IntDir)objs\</ObjectFileName>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat />
+      <PreprocessorDefinitions>_MBCS;NOLZMAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <UseUnicodeResponseFiles>false</UseUnicodeResponseFiles>
@@ -93,15 +95,12 @@
     <ClCompile Include="..\src\aes256\aes.c" />
     <ClCompile Include="..\src\base64\base64.c" />
     <ClCompile Include="..\src\endetool.cpp" />
-    <ClCompile Include="..\src\lzmat\lzmat_dec.c" />
-    <ClCompile Include="..\src\lzmat\lzmat_enc.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aes256\aes.hpp" />
     <ClInclude Include="..\src\aes256\back2def.h" />
     <ClInclude Include="..\src\base64\base64.h" />
     <ClInclude Include="..\src\endetool.h" />
-    <ClInclude Include="..\src\lzmat\lzmat.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

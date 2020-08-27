@@ -21,7 +21,7 @@ BASE64DIR = ${SOURCEDIR}/base64
 LZMATDIR  = ${SOURCEDIR}/lzmat
 OBJDIR    = ./obj/static
 OUTBIN    = libendetool.a
-DEFINEOPT = -D_GNU_SOURCE
+DEFINEOPT = -D_GNU_SOURCE -DNOLZMAT
 OPTIMOPT  = -O2 -s
 OPTADD    = 
 
@@ -48,19 +48,11 @@ ${OBJDIR}/base64.o:
 	@echo "Compiling BASE64 ..."
 	@$(GCC) -c ${CFLAGS} ${BASE64DIR}/base64.c -o $@
 
-${OBJDIR}/lzmat_dec.o:
-	@echo "Compiling LZMAT decoder ..."
-	@$(GCC) -c ${CFLAGS} ${LZMATDIR}/lzmat_dec.c -o $@
-
-${OBJDIR}/lzmat_enc.o:
-	@echo "Compiling LZMAT encoder ..."
-	@$(GCC) -c ${CFLAGS} ${LZMATDIR}/lzmat_enc.c -o $@
-	
 ${OBJDIR}/endetool.o:
 	@echo "Compiling library exports ..."
 	@$(GPP) -c ${CFLAGS} ${SOURCEDIR}/endetool.cpp -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(OPTIMIZEOPT) -o $@
 
-${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/lzmat_dec.o ${OBJDIR}/lzmat_enc.o ${OBJDIR}/endetool.o
+${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/endetool.o
 	@echo "Generating library ..."
 	@$(AR) -q $@ ${OBJDIR}/*.o
 	@cp -rf ${SOURCEDIR}/endetool.h ${OUTDIR}
