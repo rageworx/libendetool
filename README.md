@@ -1,4 +1,4 @@
-# libendetool
+# libendetool ( non-lzmat branch )
 
 ## What is this ?
 
@@ -7,11 +7,14 @@
 ## Compatible
 * Lastest version of libendetool not compatibles with 0.4-prerelease by updating AES-256 encryption method.
 
+## License
+* MIT License
+
 ## Latest Update 
 
 * 17-June-2020
 	- Version 1.0.3.3 ( NON-LZMAT )
-	- No LZMAT version fo license issue.
+	- No LZMAT version for free from GPL issue.
 
 ## Previous Update 
 
@@ -34,7 +37,7 @@
     - able to set IV through encryptkey(). 
 
 * 16-May-2019
-    - Updated AES-56 with Kokke's tine-AES-c source.
+    - Updated AES-256 with Kokke's tine-AES-c source.
     - Fixed a bug not releases AES context memory.
     - Removed old AES-256-ECB sources.
  
@@ -53,7 +56,6 @@
 
 * BASE-64 for encode and decode datas as ASCII ranged text string.
 * AES-256 CBC.
-* LZMA-Tiny (may for compressing binary data in future)
 
 ## Supported compilers 
 
@@ -73,7 +75,3 @@
 * tiny-AES-c (new)
     - Author: Kokke
     - Source repo.: https://github.com/kokke/tiny-AES-c
-
-* LZMAT v1.01
-    - Author: Vitaly Evseenko ( ve@matcode.com )
-    - Homepage: http://www.matcode.com/lzmat.htm
