@@ -13,9 +13,9 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////
 
 #ifdef _WIN32
-	#define TARGET_PF	"WIN32"
+	#define TARGET_PF	"windows"
 #else
-	#define TARGET_PF	"POSIX"
+	#define TARGET_PF	"posix"
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,7 @@ string	me_path;
 string	me_name;
 string	me_version = "0.2.5.12";
 string	ende_key;
+string  ende_iv;
 string	ende_data;
 string  ende_file_src;
 string  ende_file_dst;
@@ -137,6 +138,11 @@ void parseArgs( int argc, char** argv )
 				ende_key = strtmp.substr( 6 );
 			}
 			else
+            if ( strtmp.find( "--iv=" ) == 0 )
+            {
+                ende_iv = strtmp.substr( 5 );
+            }
+            else
 			if ( strtmp.find( "--verboseoff" ) == 0 )
 			{
 				opt_verbose_off = true;
@@ -180,11 +186,20 @@ void printAbout()
 {
 	if ( opt_verbose_off == false )
 	{
-		printf( "%s : In-line command shell tool %s, verison %s\n",
+        unsigned ende_pv0 = ENDETOOL_VERSION & 0xFF000000 >> 24;
+        unsigned ende_pv1 = ENDETOOL_VERSION & 0x00FF0000 >> 16;
+        unsigned ende_pv2 = ENDETOOL_VERSION & 0x0000FF00 >> 8;
+        unsigned ende_pv3 = ENDETOOL_VERSION & 0x000000FF;
+
+		printf( "%s, %s, verison %s of libende %u.%u.%u.%u\n",
 				me_name.c_str(),
 				TARGET_PF,
-				me_version.c_str() );
-		printf( "(C)Copyrighted 2013 - 2018 Raphael Kim\n" );
+				me_version.c_str(),
+                ende_pv0,
+                ende_pv1,
+                ende_pv2,
+                ende_pv3 );
+		printf( "(C)Copyrighted 2013 - 2020 Raphael Kim\n" );
 		printf( "\n" );
 	}
 }
@@ -232,13 +247,24 @@ int main( int argc, char** argv )
     }
 
 #ifdef DEBUG
-    printf( "debug-key:[%s]\n", ende_key.c_str() );
+    printf( "debug-key&iv:[%s,%s]\n", 
+            ende_key.c_str(),
+            ende_iv.c_str() );
 #endif /// of DEBUG
 	EnDeTool* ende = new EnDeTool();
 	if ( ende != NULL )
 	{
 		ende->reset();
-	    ende->cryptkey( ende_key.c_str() );
+
+        if ( ende_iv.size() == 0 )
+        {
+            ende->cryptkey( ende_key.c_str() );
+        }
+        else
+        {
+            ende->cryptkey( ende_key.c_str(),
+                            ende_iv.c_str() );
+        }
 		
 		if( opt_decode == true )
 		{
