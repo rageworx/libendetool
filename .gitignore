@@ -42,7 +42,12 @@ vc90prj/Release/
 vc90prj/Lib/
 vc11prj/Debug/
 vc11prj/Release/
+vc11prj/Debug32/
+vc11prj/Release32/
+vc11prj/Debug64/
+vc11prj/Release64/
 vc11prj/Lib/
+vc11prj/x64
 .vs
 *.depend
 *.layout
