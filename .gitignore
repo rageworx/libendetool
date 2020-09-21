@@ -48,7 +48,9 @@ vc11prj/Debug64/
 vc11prj/Release64/
 vc11prj/Lib/
 vc11prj/x64
+vc11prj/Includes/
 .vs
 *.depend
 *.layout
 *.cscope_file_list
+*.zip
