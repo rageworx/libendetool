@@ -193,14 +193,14 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
     if ( realsz > decbuffsz )
     {
         // this must be error case.
-        delete decptr;
+        delete[] decptr;
         return 0;
     }
 
     out = new char[ realsz ];
     if ( out == NULL )
     {
-        delete decptr;
+        delete[] decptr;
         return 0;
     }
 
