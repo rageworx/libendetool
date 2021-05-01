@@ -22,10 +22,7 @@
   #define CTR 1
 #endif
 
-
-#define AES128 1
-//#define AES192 1
-//#define AES256 1
+#define AES256 1
 
 #define AES_BLOCKLEN 16 //Block length in bytes AES is 128b block only
 

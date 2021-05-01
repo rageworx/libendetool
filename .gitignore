@@ -47,3 +47,5 @@ vc11prj/Lib/
 *.depend
 *.layout
 *.cscope_file_list
+.DS_Store
+test/endetest*

@@ -20,7 +20,7 @@ OUTDIR    = ./lib
 AES256DIR = ${SOURCEDIR}/aes256
 BASE64DIR = ${SOURCEDIR}/base64
 LZMATDIR  = ${SOURCEDIR}/lzmat
-OBJDIR    = ./obj/static
+OBJDIR    = ./obj
 OUTBIN    = libendetool.a
 DEFINEOPT = -D_GNU_SOURCE
 OPTIMOPT  = -O2
@@ -48,10 +48,10 @@ CFLAGS += $(DEFINEOPT)
 CFLAGS += $(OPTARCH)
 LFLAGS += $(OPTIMOPT) $(OPTADD)
 
+.PHONY: prepare clean test
+
 all: prepare ${OUTDIR}/${OUTBIN}
 cleanall: prepare clean ${OUTDIR}/${OUTBIN}
-
-windows: all
 
 prepare:
 	@mkdir -p ${OBJDIR}
@@ -83,8 +83,13 @@ ${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/lzmat_dec.o
 	@$(RL) $@
 	@cp -rf ${SOURCEDIR}/endetool.h ${OUTDIR}
 
+test: ${OUTDIR}/${OUTBIN} test/test.cpp
+	@echo "Compiling test ..."
+	@$(GPP) -Ilib -Llib -lendetool test/test.cpp ${LFLAGS} -o test/endetest
+
 clean:
 	@echo "Cleaning ...."
 	@rm -rf ${OBJDIR}/*
 	@rm -rf ${OUTDIR}/${OUTBIN}
 	@rm -rf ${OUTDIR}/endetool.h
+	@rm -rf test/endetest.*
