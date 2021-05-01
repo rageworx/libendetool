@@ -1,5 +1,5 @@
 # Makefile for libendetool
-# (C)2016 ~ 2019 Raphael Kim / rageworx
+# (C)2016 ~ 2021 Raphael Kim / rageworx
 
 # To enable build for embedded linux, you may encomment next 2 lines.
 # CCPREPATH = ${ARM_LINUX_GCC_PATH}
@@ -13,6 +13,7 @@ CCPATH = ${CCPREFIX}
 GCC = ${CCPATH}gcc
 GPP = ${CCPATH}g++
 AR  = ${CCPATH}ar
+RL  = ${CCPATH}ranlib
 
 SOURCEDIR = ./src
 OUTDIR    = ./lib
@@ -22,17 +23,33 @@ LZMATDIR  = ${SOURCEDIR}/lzmat
 OBJDIR    = ./obj/static
 OUTBIN    = libendetool.a
 DEFINEOPT = -D_GNU_SOURCE
-OPTIMOPT  = -O2 -s
+OPTIMOPT  = -O2
 OPTADD    = 
+OPTARCH   =
 
-ifeq (windows,$(firstword $(MAKECMDGOALS)))
-OPTADD += -mwindows
+# Automatic detecting architecture.
+KRNL := $(shell uname -s)
+KVER := $(shell uname -r | cut -d . -f1)
+ARCH := $(shell uname -m)
+
+ifeq ($(KRNL),Darwin)
+	ifeq ($(shell test $(KVER) -gt 19; echo $$?),0)
+		OPTARCH += -arch x86_64 -arch arm64
+	endif
+else
+	SUBSYS := $(shell uname | grep -q ^MINGW)
+	ifeq ($(SUBSYS),MINGW)
+		OPTARCH += -mwindows
+	endif
 endif
 
-CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(DEFINEOPT)
-LFLAGS    = $(OPTIMOPT) $(OPTADD)
+CFLAGS += -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR)
+CFLAGS += $(DEFINEOPT)
+CFLAGS += $(OPTARCH)
+LFLAGS += $(OPTIMOPT) $(OPTADD)
 
-all: prepare clean ${OUTDIR}/${OUTBIN}
+all: prepare ${OUTDIR}/${OUTBIN}
+cleanall: prepare clean ${OUTDIR}/${OUTBIN}
 
 windows: all
 
@@ -62,7 +79,8 @@ ${OBJDIR}/endetool.o:
 
 ${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/lzmat_dec.o ${OBJDIR}/lzmat_enc.o ${OBJDIR}/endetool.o
 	@echo "Generating library ..."
-	@$(AR) -q $@ ${OBJDIR}/*.o
+	@$(AR) -cr $@ $^
+	@$(RL) $@
 	@cp -rf ${SOURCEDIR}/endetool.h ${OUTDIR}
 
 clean:
