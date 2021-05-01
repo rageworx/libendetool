@@ -3,9 +3,9 @@
 GCC=gcc
 GPP=g++
 
-TARGET=endecmd
-LFLAGS+=-O2 -s
-LFLAGS+=-static -mtune=native -lpthread
+TARGET  = endecmd
+LFLAGS += -O2
+LFLAGS += -mtune=native -lpthread
 
 DIRSRC=src
 DIRINC=src
@@ -17,6 +17,24 @@ CFLAGS+=-I${DIRINC}
 CFLAGS+=-I${DIRLEDT}
 LFLAGS+=-L${DIRLEDT}
 LFLAGS+=-lendetool
+
+# Automatic detecting architecture.
+KRNL := $(shell uname -s)
+KVER := $(shell uname -r | cut -d . -f1)
+ARCH := $(shell uname -m)
+
+ifeq ($(KRNL),Darwin)
+	ifeq ($(shell test $(KVER) -gt 19; echo $$?),0)
+		CFLAGS += -arch x86_64 -arch arm64
+	endif
+else
+	SUBSYS := $(shell uname | grep -q ^MINGW)
+	ifeq ($(SUBSYS),MINGW)
+		LFLAGS += -mwindows -static -s
+	else
+		LFLAGS += -s
+	endif
+endif
 
 SRCS=$(wildcard ${DIRSRC}/*.cpp)
 OBJS=$(SRCS:${DIRSRC}/%.cpp=${DIROBJ}/%.o)

@@ -33,7 +33,6 @@
 *.db
 
 # Others
-Makefile
 bin/
 lib/
 obj/

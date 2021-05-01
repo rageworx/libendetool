@@ -22,7 +22,7 @@ using namespace std;
 
 string	me_path;
 string	me_name;
-string	me_version = "0.2.5.12";
+string	me_version = "0.2.5.13";
 string	ende_key;
 string	ende_data;
 string  ende_file_src;
@@ -190,7 +190,7 @@ void printAbout()
 				me_name.c_str(),
 				TARGET_PF,
 				me_version.c_str() );
-		printf( "(C)Copyrighted 2013 - 2018 Raphael Kim\n" );
+		printf( "(C)Copyrighted 2013 - 2021 Raphael Kim\n" );
 		printf( "\n" );
 	}
 }
@@ -199,7 +199,7 @@ void printArgsHelp()
 {
 	if ( opt_verbose_off == false )
 	{
-		printf( "\tusage : %s [ options ] ( string or source filename ) ( out filename )\n", me_name.c_str() );
+		printf( "\tusage : %s [ options ] (string or source file) (out file)\n", me_name.c_str() );
 		printf( "\n" );
 		printf( "\t_options_\n" );
 		printf( "\n" );

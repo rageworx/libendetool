@@ -1,6 +1,6 @@
 #!/bin/bash
 KEY="12345678901234567890123456789012"
-SRC="Testing_source_words_for_libendetool_and_endecmd."
+SRC="Testing_source_words_for_libendetool_and_endecmd..."
 ENDECMD=bin/endecmd
 #TESTRUN=$(shell ${ENDECMD} --help)
 TESTRUN=$(${ENDECMD} --help)
