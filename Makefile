@@ -37,8 +37,8 @@ ifeq ($(KRNL),Darwin)
 		OPTARCH += -arch x86_64 -arch arm64
 	endif
 else
-	SUBSYS := $(shell uname | grep -q ^MINGW)
-	ifeq ($(SUBSYS),MINGW)
+	SUBSYS := $(shell uname -s | cut -d - -f1)
+	ifeq ($(SUBSYS),MINGW64_NT)
 		OPTARCH += -mwindows
 	endif
 endif
