@@ -22,17 +22,35 @@ LZMATDIR  = ${SOURCEDIR}/lzmat
 OBJDIR    = ./obj/static
 OUTBIN    = libendetool.a
 DEFINEOPT = -D_GNU_SOURCE -DNOLZMAT
-OPTIMOPT  = -O2 -s
+OPTIMOPT  = -Os -s
 OPTADD    = 
 
-ifeq (windows,$(firstword $(MAKECMDGOALS)))
-OPTADD += -mwindows
+# Detecting archtecture
+KRNL := $(shell uname -s)
+KVER := $(shell uname -r | cut -d . -f1)
+ARCH := $(shell uname -m)
+
+ifeq ($(KRNL),Darwin)
+	# MacOS overrides to llvm.
+	GCC = ${CCPATH}llvm-gcc
+	GPP = ${CCPATH}llvm-g++
+	ifeq ($(shell test $(KVER) -gt 19; echo $$?),0)
+		OPTADD = -arch x86_64 -arch arm64
+	endif
+else
+	STRIPKRNL = $(shell echo $(KRNL) | cut -d _ -f1)
+	ifeq ($(STRIPKRNL),MINGW64)
+		OPTADD = -mwindows
+	else
+		CLFAGS += -std=c++11
+	endif
 endif
 
-CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(DEFINEOPT)
-LFLAGS    = $(OPTIMOPT) $(OPTADD)
+CFLAGS   += -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(DEFINEOPT)
+CFLAGS	 += $(OPTIMOPT)
+LFLAGS    = $(OPTADD)
 
-all: prepare clean ${OUTDIR}/${OUTBIN}
+all: prepare ${OUTDIR}/${OUTBIN}
 
 windows: all
 
