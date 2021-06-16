@@ -232,12 +232,24 @@ long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out 
     }
 
     // checks is it compressed ..
-    if ( memcmp( &decptr[4], &LZMAT_COMPRESS_HEADER, 4 ) == 0 )
+    if ( memcmp( decptr, &LZMAT_COMPRESS_HEADER, 4 ) == 0 )
     {
+#ifdef DEBUG
+        printf( "data compressed!\n" );
+        fflush( stdout );
+#endif /// of DEBUG        
         unsigned worksz = srcsize - 4;
 
         // reallocate buffer for decompress buffer.
+#ifdef DEBUG
+        printf( "decompressing ... " );
+        fflush( stdout );
+#endif /// of DEBUG 
         decbuffsz = decompressbuffer( decptr, worksz );
+#ifdef DEBUG
+        printf( "%u bytes\n", decbuffsz );
+        fflush( stdout );
+#endif /// of DEBUG 
 
         if ( decbuffsz < AES_BLOCKLEN )
         {

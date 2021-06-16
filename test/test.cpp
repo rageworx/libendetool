@@ -9,7 +9,6 @@ using namespace std;
 
 const char ekey[] = "12345678901234567890123456789012";
 const char eiv[]  = "09876543210987654321098765432109";
-//const char teststr[] = "Testing_source_words_for_libendetool_and_endecmd.";
 const char teststr[] = "Testing_source_words_for_libendetool_and_endecmd.";
 
 void test1()
@@ -22,9 +21,8 @@ void test1()
         printf( "Ok.\n" );
         printf( "> Configure : " );
         fflush( stdout );
-        //ende.cryptkey( ekey, eiv );
         ende->compress( false );
-        ende->cryptkey( ekey );
+        ende->cryptkey( ekey, eiv );
 
         printf( "Ok.\n" );
         fflush( stdout );
@@ -33,7 +31,12 @@ void test1()
         fflush( stdout );
 
         ende->text( teststr );
-        string encstr = ende->encodedtext();
+        printf( "> encoding ... " );
+        fflush( stdout );
+        string encstr;
+        const char* rets = ende->encodedtext();
+        if ( rets != NULL )
+            encstr = rets;
         printf( "> encoded : %s\n", encstr.c_str() );
         fflush( stdout );
 
@@ -57,9 +60,10 @@ void test2()
     if ( ende != NULL )
     {
         ende->compress( true );
-        ende->cryptkey( ekey );
+        ende->cryptkey( ekey, eiv );
 
         printf( "testing compressed encryption\n" );
+        fflush( stdout );
 
         ende->text( teststr );
         string encstr = ende->encodedtext();
@@ -77,14 +81,19 @@ int main( int argc, char** argv )
     printf( "libendetool testing.\n" );
     fflush( stdout );
 
+    printf( "========================================================\n" );
     printf( "TESTING 1: plain texts.\n");
     fflush( stdout );
     test1();
 
+    printf( "\n\n" );
+    printf( "========================================================\n" );
     printf( "TESTING 2: compressed texts.\n" );
     fflush( stdout );
     test2();
 
+    printf( "\n\n" );
+    printf( "========================================================\n" );
     fflush( stdout );
     system( "pause" );
 
