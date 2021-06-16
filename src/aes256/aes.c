@@ -139,8 +139,6 @@ static void KeyExpansion(uint8_t* RoundKey, const uint8_t* Key, unsigned Nk, uns
 
 void AES_init_ctx(struct AES_ctx* ctx, const uint8_t* key, AEStype atype)
 {
-    unsigned Nk = AES256_Nk;
-
     if ( ctx == NULL )
         return;
     
@@ -148,32 +146,27 @@ void AES_init_ctx(struct AES_ctx* ctx, const uint8_t* key, AEStype atype)
     {
         default:
         case AES_256:
-            Nk = AES256_Nk;
-            ctx->RoundKeyLength = AES_KEYLEN_32;
+            ctx->RoundKeyLength = AES256_Nk;
             ctx->CipherRounds   = AES256_Nr;
             break;
             
         case AES_192:
-            Nk = AES192_Nk;
-            ctx->RoundKeyLength = AES_KEYLEN_24;
+            ctx->RoundKeyLength = AES192_Nk;
             ctx->CipherRounds   = AES192_Nr;
             break;
             
         case AES_128:
-            Nk = AES128_Nk;
-            ctx->RoundKeyLength = AES_KEYLEN_16;
+            ctx->RoundKeyLength = AES128_Nk;
             ctx->CipherRounds   = AES128_Nr;
             break;
     }
     
-    memset( ctx->RoundKey, 0, AES_KEYLEN_MAX );
-    KeyExpansion(ctx->RoundKey, key, Nk, ctx->CipherRounds);
+    memset( ctx->RoundKey, 0, AES_KEYEXPLEN_32 );
+    KeyExpansion(ctx->RoundKey, key, ctx->RoundKeyLength, ctx->CipherRounds);
 }
 #if (defined(CBC) && (CBC == 1)) || (defined(CTR) && (CTR == 1))
 void AES_init_ctx_iv(struct AES_ctx* ctx, const uint8_t* key, const uint8_t* iv, AEStype atype)
 {
-    unsigned Nk = AES256_Nk;
-
     if ( ctx == NULL )
         return;
     
@@ -181,26 +174,23 @@ void AES_init_ctx_iv(struct AES_ctx* ctx, const uint8_t* key, const uint8_t* iv,
     {
         default:
         case AES_256:
-            Nk = AES256_Nk;
-            ctx->RoundKeyLength = AES_KEYLEN_32;
+            ctx->RoundKeyLength = AES256_Nk;
             ctx->CipherRounds   = AES256_Nr;
             break;
             
         case AES_192:
-            Nk = AES192_Nk;
-            ctx->RoundKeyLength = AES_KEYLEN_24;
+            ctx->RoundKeyLength = AES192_Nk;
             ctx->CipherRounds   = AES192_Nr;
             break;
             
         case AES_128:
-            Nk = AES128_Nk;
-            ctx->RoundKeyLength = AES_KEYLEN_16;
+            ctx->RoundKeyLength = AES128_Nk;
             ctx->CipherRounds   = AES128_Nr;
             break;
     }
     
-    memset( ctx->RoundKey, 0, AES_KEYLEN_MAX );   
-    KeyExpansion(ctx->RoundKey, key, Nk, ctx->CipherRounds);
+    memset( ctx->RoundKey, 0, AES_KEYEXPLEN_32 );   
+    KeyExpansion(ctx->RoundKey, key, ctx->RoundKeyLength, ctx->CipherRounds);
     memcpy (ctx->Iv, iv, AES_BLOCKLEN);
 }
 

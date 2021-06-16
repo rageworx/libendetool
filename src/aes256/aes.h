@@ -66,7 +66,7 @@ struct AES_ctx
 {
     uint32_t    RoundKeyLength;
     uint32_t    CipherRounds;
-    uint8_t     RoundKey[AES_KEYLEN_MAX];
+    uint8_t     RoundKey[AES_KEYEXPLEN_32];
 #if (defined(CBC) && (CBC == 1)) || (defined(CTR) && (CTR == 1))
     uint8_t     Iv[AES_BLOCKLEN];
 #endif

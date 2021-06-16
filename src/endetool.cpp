@@ -90,8 +90,8 @@ long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out 
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
-
     AEStype aestype = AES_256;
+    
     if ( cipherlevel == CipherLevel192 )
         aestype = AES_192;
     else
@@ -151,7 +151,6 @@ long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out 
 #endif
 
     unsigned encloop = tmpCiperLen / AES_BLOCKLEN;
-
     for ( unsigned cnt=0; cnt<encloop; cnt++ )
     {
         AES_CBC_encrypt_buffer( actx,
@@ -179,8 +178,8 @@ long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out 
     // decode cipher first.
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
-    
     AEStype aestype = AES_256;
+    
     if ( cipherlevel == CipherLevel192 )
         aestype = AES_192;
     else
