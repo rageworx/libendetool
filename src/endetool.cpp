@@ -87,17 +87,6 @@ long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out 
     if ( src == NULL )
         return -1;
 
-#ifdef DEBUG
-    printf( "=== encodebianry:sourcetest:begin ===\n" );
-    printf( "srcsize = %u\n", srcsize );
-    for( size_t x=0; x<srcsize; x++ )
-    {
-        printf( "%c",src[x] );
-    }
-    printf( "\n=== encodebianry:sourcetest:end ===\n" );
-    fflush( stdout );
-#endif
-
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
     AES_init_ctx_iv( actx,
@@ -116,19 +105,11 @@ long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out 
 
     if ( doingcompress == true )
     {
-#ifdef DEBUG
-        printf( "compressbuffer( %llu bytes );\n", encbuffsz );
-        fflush( stdout );
-#endif
         encbuffsz = compressbuffer( encbuff, encbuffsz );
         if ( encbuffsz == 0 ) /// failure case.
         {
             return -3; /// decompress failure.
         }
-#ifdef DEBUG
-        printf( "compressed %llu to %llu bytes.\n", encbuffsz, srcsize + 4 );
-        fflush( stdout );
-#endif
     }
 
     unsigned tmpCiperLen  = encbuffsz;
@@ -169,18 +150,6 @@ long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out 
     }
 
     out = encbuff;
-
-#ifdef DEBUG    
-    printf( "=== encodebianry:out:begin ===\n" );
-    printf( "tmpCiperLen = %u\n", tmpCiperLen );
-    for( size_t x=0; x<tmpCiperLen; x++ )
-    {
-        printf( "%02X",(uint8_t)out[x] );
-    }
-    printf( "\n=== encodebianry:out:end ===\n" );
-    fflush( stdout );
-#endif /// of DEBUG
-
     return (long long)tmpCiperLen;
 }
 
@@ -188,17 +157,6 @@ long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out 
 {
     if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
         return -1;
-
-#ifdef DEBUG
-    printf( "=== decodebinary:sourcetest:begin ===\n" );
-    printf( "srcsize = %u\n", srcsize );
-    for( size_t x=0; x<srcsize; x++ )
-    {
-        printf( "%02X",(uint8_t)src[x] );
-    }
-    printf( "\n=== decodebinary:sourcetest:end ===\n" );
-    fflush( stdout );
-#endif
 
     unsigned        decbuffsz   = srcsize;
     unsigned int    realsz      = 0;
@@ -234,23 +192,10 @@ long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out 
     // checks is it compressed ..
     if ( memcmp( decptr, &LZMAT_COMPRESS_HEADER, 4 ) == 0 )
     {
-#ifdef DEBUG
-        printf( "data compressed!\n" );
-        fflush( stdout );
-#endif /// of DEBUG        
         unsigned worksz = srcsize - 4;
 
         // reallocate buffer for decompress buffer.
-#ifdef DEBUG
-        printf( "decompressing ... " );
-        fflush( stdout );
-#endif /// of DEBUG 
         decbuffsz = decompressbuffer( decptr, worksz );
-#ifdef DEBUG
-        printf( "%u bytes\n", decbuffsz );
-        fflush( stdout );
-#endif /// of DEBUG 
-
         if ( decbuffsz < AES_BLOCKLEN )
         {
             delete[] decptr;
@@ -286,25 +231,7 @@ long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out 
         if ( out != NULL )
         {
             memset( out, 0, realsz + 1 );
- #ifdef DEBUG
-            printf( "#TEST#\n" );
-            printf( "decptr = %llX ~ %llX, size = %llu\n", 
-                    decptr, decptr + decbuffsz, decbuffsz );
-            printf( "out = %llX~%llX, size = %llu\n", 
-                    out, out + realsz + 1, realsz );
-            fflush( stdout );
- #endif /// of DEBUG
             memcpy( out, &decptr[4], realsz );
- #ifdef DEBUG
-            printf( "=== decodebinary:out:begin ===\n" );
-            printf( "realsz = %u\n", realsz );
-            for( size_t x=0; x<realsz; x++ )
-            {
-                printf( "%c",out[x] );
-            }
-            printf( "\n=== decodebinary:out:end ===\n" );
-            fflush( stdout );
- #endif /// of DEBUG
             delete[] decptr;
         }
         else

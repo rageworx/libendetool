@@ -24,9 +24,8 @@ LZMATDIR  = ${SOURCEDIR}/lzmat
 OBJDIR    = ./obj
 OUTBIN    = libendetool.a
 DEFINEOPT = -D_GNU_SOURCE
-#OPTIMOPT  = -O2 -fomit-frame-pointer
+OPTIMOPT  = -O2 -fomit-frame-pointer
 #OPTIMOPT  =  -g3  -DDEBUG
-OPTIMOPT  =  -g3
 OPTADD    = 
 OPTARCH   =
 
