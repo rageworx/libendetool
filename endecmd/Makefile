@@ -28,9 +28,9 @@ ifeq ($(KRNL),Darwin)
 		CFLAGS += -arch x86_64 -arch arm64
 	endif
 else
-	SUBSYS := $(shell uname | grep -q ^MINGW)
-	ifeq ($(SUBSYS),MINGW)
-		LFLAGS += -mwindows -static -s
+	SUBSYS := $(shell uname -s | cut -d _ -f1)
+	ifeq ($(SUBSYS),MINGW64)
+		LFLAGS += -mconsole -static -s
 	else
 		LFLAGS += -s
 	endif

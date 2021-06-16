@@ -38,9 +38,9 @@ ifeq ($(KRNL),Darwin)
 		OPTARCH += -arch x86_64 -arch arm64
 	endif
 else
-	SUBSYS := $(shell uname -s | cut -d - -f1)
-	ifeq ($(SUBSYS),MINGW64_NT)
-		OPTARCH += -mwindows
+	SUBSYS := $(shell uname -s | cut -d _ -f1)
+	ifeq ($(SUBSYS),MINGW64)
+		OPTARCH += -mconsole
 	endif
 endif
 
@@ -86,7 +86,7 @@ ${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/lzmat_dec.o
 
 test: ${OUTDIR}/${OUTBIN} test/test.cpp
 	@echo "Compiling test ..."
-	@$(GPP) -Ilib -Llib -lendetool test/test.cpp ${LFLAGS} -o test/endetest
+	@$(GPP) ${CFLAGS} test/test.cpp -Ilib -Llib -lendetool ${LFLAGS} -o test/endetest
 
 clean:
 	@echo "Cleaning ...."
