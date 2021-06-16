@@ -4,16 +4,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 // EnDeTool for Crypting data with AES256-CBC and BASE64.
 // ===========================================================================
-// A Front-End of C++ class library for gcc/MinGW
-// (C)Copyright 2014 to 2020 Raphael Kim.
+// A Front-End of C++ class library for POSIX-gcc
+// (C)Copyright 2014 to 2021 Raphael Kim.
 //
 // [ WARNING ]
-// * 1.1.x does not compatibles with 1.0.x
+// * 1.1.3.x does not compatible with below versions by key length.
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Version means 1.1.0.5
-#define ENDETOOL_VERSION    (0x01010005)
+// Version means 1.1.3.6
+#define ENDETOOL_VERSION    (0x01010306)
+#define ENDETOOL_KEYLEN     64
 
 class EnDeTool
 {
@@ -45,8 +46,8 @@ class EnDeTool
         unsigned    decompressbuffer( char* &buff, unsigned blen );
 
     protected:
-        char        encryptkey[32];
-        char        encryptiv[32];
+        char        encryptkey[ENDETOOL_KEYLEN];
+        char        encryptiv[ENDETOOL_KEYLEN];
         char*       origintext;
         char*       encrypttext;
         unsigned    origintextlen;

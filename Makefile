@@ -19,11 +19,12 @@ SOURCEDIR = ./src
 OUTDIR    = ./lib
 AES256DIR = ${SOURCEDIR}/aes256
 BASE64DIR = ${SOURCEDIR}/base64
+# LZMA may removed for next version -
 LZMATDIR  = ${SOURCEDIR}/lzmat
 OBJDIR    = ./obj
 OUTBIN    = libendetool.a
 DEFINEOPT = -D_GNU_SOURCE
-OPTIMOPT  = -O2
+OPTIMOPT  = -O2 -fomit-frame-pointer -ffast-math
 OPTADD    = 
 OPTARCH   =
 

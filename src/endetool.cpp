@@ -31,8 +31,8 @@ EnDeTool::EnDeTool()
    isencoded(false),
    doingcompress(false)
 {
-    memset( encryptkey, 0, 32 );
-    memset( encryptiv, 0, 32 );
+    memset( encryptkey, 0, ENDETOOL_KEYLEN );
+    memset( encryptiv, 0, ENDETOOL_KEYLEN );
 
     AES_ctx* aesctx = new AES_ctx;
     cryptcontext = (void*)aesctx;
@@ -318,25 +318,26 @@ void EnDeTool::cryptkey( const char* key, const char* iv )
     if ( key == NULL )
         return;
 
-    int cpylen = strlen( key );
-    if ( cpylen > 32 )
+    size_t cpylen = strlen( key );
+
+    if ( cpylen > ENDETOOL_KEYLEN )
     {
-        cpylen = 32;
+        cpylen = ENDETOOL_KEYLEN;
     }
 
-    memset( encryptkey, 0, 32 );
-    strncpy( encryptkey, key, cpylen );
-
-    memset( encryptiv, 0, 32 );
+    memset( encryptkey, 0, ENDETOOL_KEYLEN );
+    memcpy( encryptkey, key, cpylen );
+    memset( encryptiv, 0, ENDETOOL_KEYLEN );
     if ( iv != NULL )
     {
         cpylen = strlen( iv );
-        if ( cpylen > 32 )
+
+        if ( cpylen > ENDETOOL_KEYLEN )
         {
-            cpylen = 32;
+            cpylen = ENDETOOL_KEYLEN;
         }
 
-        strncpy( encryptiv, iv, cpylen );
+        memcpy( encryptiv, iv, cpylen );
     }
 
     if ( isencoded == true )
@@ -440,7 +441,7 @@ bool EnDeTool::decode()
 void debug_printkey( const char* prefix, const char* key )
 {
     printf( "%s = '", prefix );
-    for( unsigned cnt=0; cnt<32; cnt++ )
+    for( unsigned cnt=0; cnt<ENDETOOL_KEYLEN; cnt++ )
     {
         printf( "%c", key[cnt] );
     }
@@ -453,11 +454,11 @@ void EnDeTool::generateiv()
     if ( encryptiv[0] == 0 )
     {
         // erase iv once more.
-        memset( encryptiv, 0, 32 );
+        memset( encryptiv, 0, ENDETOOL_KEYLEN );
 
-        for( unsigned cnt=0; cnt<32; cnt++ )
+        for( unsigned cnt=0; cnt<ENDETOOL_KEYLEN; cnt++ )
         {
-           encryptiv[ cnt ] = encryptkey[ 31 - cnt ];
+           encryptiv[ cnt ] = encryptkey[ (ENDETOOL_KEYLEN-1)-cnt ];
         }
     }
 
