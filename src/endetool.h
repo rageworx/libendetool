@@ -14,12 +14,19 @@
 
 // Version means 1.1.3.6
 #define ENDETOOL_VERSION    (0x01010306)
-#define ENDETOOL_KEYLEN     64
+#define ENDETOOL_KEYLEN     32
 
 class EnDeTool
 {
     public:
-        EnDeTool();
+        typedef enum {
+            CipherLevel256  = 0,
+            CipherLevel192,
+            CipherLevel128
+        }CipherLevel;
+
+    public:
+        EnDeTool( CipherLevel clevel = CipherLevel256 );
         virtual ~EnDeTool();
 
     public:
@@ -56,6 +63,7 @@ class EnDeTool
         void*       cryptcontext;
         bool        isencoded;
         bool        doingcompress;
+        CipherLevel cipherlevel;
 
     protected:
         bool encode();

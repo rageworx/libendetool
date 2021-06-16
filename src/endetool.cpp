@@ -21,7 +21,7 @@ const unsigned int  LZMAT_COMPRESS_HEADER   = 0x544D5A4C;
 
 ///////////////////////////////////////////////////////////////
 
-EnDeTool::EnDeTool()
+EnDeTool::EnDeTool( CipherLevel clevel )
  : origintext(NULL),
    encrypttext(NULL),
    cryptcontext(NULL),
@@ -29,7 +29,8 @@ EnDeTool::EnDeTool()
    encryptedtextlen(0),
    paddedorigintextlen(0),
    isencoded(false),
-   doingcompress(false)
+   doingcompress(false),
+   cipherlevel(clevel)
 {
     memset( encryptkey, 0, ENDETOOL_KEYLEN );
     memset( encryptiv, 0, ENDETOOL_KEYLEN );
@@ -89,9 +90,18 @@ long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out 
 
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
+
+    AEStype aestype = AES_256;
+    if ( cipherlevel == CipherLevel192 )
+        aestype = AES_192;
+    else
+    if ( cipherlevel == CipherLevel128 )
+        aestype = AES_128;
+    
     AES_init_ctx_iv( actx,
                      (const uint8_t*)encryptkey ,
-                     (const uint8_t*)encryptiv );
+                     (const uint8_t*)encryptiv,
+                     aestype );
 
     unsigned encbuffsz = srcsize + 4;
     char* encbuff = new char[ encbuffsz ];
@@ -165,12 +175,22 @@ long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out 
     {
         decbuffsz += AES_BLOCKLEN - ( decbuffsz % AES_BLOCKLEN );
     }
+    
     // decode cipher first.
     generateiv();
     AES_ctx* actx = (AES_ctx*)cryptcontext;
+    
+    AEStype aestype = AES_256;
+    if ( cipherlevel == CipherLevel192 )
+        aestype = AES_192;
+    else
+    if ( cipherlevel == CipherLevel128 )
+        aestype = AES_128;    
+    
     AES_init_ctx_iv( actx,
                      (const uint8_t*)encryptkey ,
-                     (const uint8_t*)encryptiv );
+                     (const uint8_t*)encryptiv,
+                     aestype );
 
     char* decptr = new char[ decbuffsz ];
 
