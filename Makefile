@@ -24,8 +24,9 @@ LZMATDIR  = ${SOURCEDIR}/lzmat
 OBJDIR    = ./obj
 OUTBIN    = libendetool.a
 DEFINEOPT = -D_GNU_SOURCE
-#OPTIMOPT  = -O2 -fomit-frame-pointer -ffast-math
-OPTIMOPT  =  -g3 -O2 -DDEBUG
+#OPTIMOPT  = -O2 -fomit-frame-pointer
+#OPTIMOPT  =  -g3  -DDEBUG
+OPTIMOPT  =  -g3
 OPTADD    = 
 OPTARCH   =
 
@@ -41,7 +42,7 @@ ifeq ($(KRNL),Darwin)
 else
 	SUBSYS := $(shell uname -s | cut -d _ -f1)
 	ifeq ($(SUBSYS),MINGW64)
-		OPTARCH += -mconsole
+		OPTARCH += -mconsole -static
 	endif
 endif
 

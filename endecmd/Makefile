@@ -30,7 +30,7 @@ ifeq ($(KRNL),Darwin)
 else
 	SUBSYS := $(shell uname -s | cut -d _ -f1)
 	ifeq ($(SUBSYS),MINGW64)
-		LFLAGS += -mconsole -static -s
+		LFLAGS += -static -s
 	else
 		LFLAGS += -s
 	endif

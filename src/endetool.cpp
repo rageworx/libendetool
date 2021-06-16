@@ -84,7 +84,7 @@ void EnDeTool::compress( bool enabled )
 
 long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 {
-    if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
+    if ( src == NULL )
         return -1;
 
 #ifdef DEBUG
@@ -159,7 +159,7 @@ long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out 
     }
 #endif
 
-    unsigned encloop = ( tmpCiperLen / AES_BLOCKLEN ) + 1;
+    unsigned encloop = tmpCiperLen / AES_BLOCKLEN;
 
     for ( unsigned cnt=0; cnt<encloop; cnt++ )
     {
@@ -272,6 +272,12 @@ long long EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out 
     else
     {
         memcpy( &realsz, decptr, 4 );
+        // check wrong decoded-
+        if ( realsz > srcsize )
+        {
+            delete[] decptr;
+            return -10;
+        }
     }
 
     if ( realsz > 0 )
