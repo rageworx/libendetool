@@ -56,5 +56,5 @@ ${OBJS}: ${DIROBJ}/%.o: ${DIRSRC}/%.cpp
 
 ${DIRBIN}/${TARGET}: ${OBJS}
 	@echo "Generating $@ ..."
-	@$(GPP) ${OBJS} ${LFLAGS} -o $@
+	@$(GPP) ${CFLAGS} ${OBJS} ${LFLAGS} -o $@
 	
