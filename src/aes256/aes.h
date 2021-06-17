@@ -1,6 +1,11 @@
 #ifndef _AES_H_
 #define _AES_H_
 
+/*
+    -- AES for variable key length each 16, 24, 32 ( 128, 192, 256 bit )
+    -- (C)2021 Raphael K,
+*/
+
 #include <stdint.h>
 
 // #define the macros below to 1/0 to enable/disable the mode of operation.
@@ -10,6 +15,7 @@
 // ECB enables the basic ECB 16-byte block algorithm. All can be enabled simultaneously.
 
 // The #ifndef-guard allows it to be configured before #include'ing or at compile time.
+
 #ifndef CBC
   #define CBC 1
 #endif
@@ -22,35 +28,53 @@
   #define CTR 1
 #endif
 
+//Default is AES256
+#define AES256 1
 
-#define AES128 1
-//#define AES192 1
-//#define AES256 1
+//Block length in bytes AES is 128b block only
+#define AES_BLOCKLEN        16
 
-#define AES_BLOCKLEN 16 //Block length in bytes AES is 128b block only
+//Key length types, each 256, 192 and 128
+typedef enum {
+    AES_256     = 0,
+    AES_192,
+    AES_128
+}AEStype;
+
+#define AES_KEYLEN_32       32
+#define AES_KEYLEN_24       24
+#define AES_KEYLEN_16       16
+#define AES_KEYEXPLEN_32    240
+#define AES_KEYEXPLEN_24    208
+#define AES_KEYEXPLEN_16    176
+
+#define AES_KEYLEN_MAX      AES_KEYLEN_32
+#define AES_KEYEXPLEN_MAX   AES_KEYEXPLEN_32
 
 #if defined(AES256) && (AES256 == 1)
-    #define AES_KEYLEN 32
-    #define AES_keyExpSize 240
+    #define AES_KEYLEN      AES_KEYLEN_32
+    #define AES_keyExpSize  AES_KEYEXPLEN_32
 #elif defined(AES192) && (AES192 == 1)
-    #define AES_KEYLEN 24
-    #define AES_keyExpSize 208
+    #define AES_KEYLEN      AES_KEYLEN_24
+    #define AES_keyExpSize  AES_KEYEXPLEN_24
 #else
-    #define AES_KEYLEN 16   // Key length in bytes
-    #define AES_keyExpSize 176
+    #define AES_KEYLEN      AES_KEYLEN_16 
+    #define AES_keyExpSize  AES_KEYEXPLEN_16
 #endif
 
 struct AES_ctx
 {
-  uint8_t RoundKey[AES_keyExpSize];
+    uint32_t    RoundKeyLength;
+    uint32_t    CipherRounds;
+    uint8_t     RoundKey[AES_KEYEXPLEN_32];
 #if (defined(CBC) && (CBC == 1)) || (defined(CTR) && (CTR == 1))
-  uint8_t Iv[AES_BLOCKLEN];
+    uint8_t     Iv[AES_BLOCKLEN];
 #endif
 };
 
-void AES_init_ctx(struct AES_ctx* ctx, const uint8_t* key);
+void AES_init_ctx(struct AES_ctx* ctx, const uint8_t* key, AEStype atype);
 #if (defined(CBC) && (CBC == 1)) || (defined(CTR) && (CTR == 1))
-void AES_init_ctx_iv(struct AES_ctx* ctx, const uint8_t* key, const uint8_t* iv);
+void AES_init_ctx_iv(struct AES_ctx* ctx, const uint8_t* key, const uint8_t* iv, AEStype atype);
 void AES_ctx_set_iv(struct AES_ctx* ctx, const uint8_t* iv);
 #endif
 

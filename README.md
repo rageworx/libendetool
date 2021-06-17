@@ -4,19 +4,34 @@
 
 * A C++ open source project for helping easily encode or decode string and stream data with AES-256 and BASE-64.
 
-## Compatible
-* Lastest version of libendetool not compatibles with 0.4-prerelease by updating AES-256 encryption method.
+## Compatibility with old versions
+* Please remind this version issues,
+  * 1.1.x.y not compatible with 1.0.x.y. 
+  * 1.1.x.y and 1.0.x.y are not compatible with 0.x.y.z
+* Please use tagged versions if needed for each different compatibility dependencies.
 
 ## License
 * MIT License
 
 ## Latest Update 
 
+* 17-June-2021
+	- Version 1.1.3.6
+	- Supporting variable AES cipher levels for each 256, 192 and 128.
+	- Fixed many minor bugs like unstable memory broken or AES key length issues.
+	- NOT COMPATIBLE with v1.0.3.3.
+
+## Previous Update 
+
 * 17-June-2020
 	- Version 1.0.3.3 ( NON-LZMAT )
 	- No LZMAT version for free from GPL issue.
 
-## Previous Update 
+* 20-July-2020
+  - Version 1.1.0.5
+  - Big changes for doing compress buffer before AES-256 encoding when compression flag enabled.
+  - Compressed buffer may not compatible with version 1.0.3.3.
+  - Use seperately 1.0.3.3. and 1.1.0.5 if user using compressed option. 
 
 * 16-June-2020
 	- Version 1.0.3.3
@@ -37,7 +52,7 @@
     - able to set IV through encryptkey(). 
 
 * 16-May-2019
-    - Updated AES-256 with Kokke's tine-AES-c source.
+    - Updated AES-56 with Kokke's tine-AES-c source.
     - Fixed a bug not releases AES context memory.
     - Removed old AES-256-ECB sources.
  
@@ -54,24 +69,22 @@
 
 ## Used encoding.
 
-* BASE-64 for encode and decode datas as ASCII ranged text string.
-* AES-256 CBC.
+* BASE-64 for encode and decode method as simple text string
+* AES CBC with 128, 192 and 256 bits
 
 ## Supported compilers 
 
-* LLVM GCC for Apple Mac OS.
-* gcc 32bit, 64bit ( inc. Apple HPC gcc )
-* MinGW, MinGW-W64 32bit, 64bit
+* Xcode (llvm) for Apple Mac OS up to Big Sur
+* POSIX gcc
 * Visual Studio 2008, 2012, and later
 
 ## Supported to encode and decode.
 
-* Multibyte (or ASCII) strings
-* UTF-8 strings
-* UNICODE as binary encoding.
+* UTF-8, MBCS strings by simple text() and encodedtext() method
+* wide charactors as binary encoding
 
 ## External Licenses
 
-* tiny-AES-c (new)
+* tiny-AES-c
     - Author: Kokke
     - Source repo.: https://github.com/kokke/tiny-AES-c

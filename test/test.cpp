@@ -21,8 +21,7 @@ void test1()
         printf( "Ok.\n" );
         printf( "> Configure : " );
         fflush( stdout );
-        //ende.cryptkey( ekey, eiv );
-        ende->cryptkey( ekey );
+        ende->cryptkey( ekey, eiv );
 
         printf( "Ok.\n" );
         fflush( stdout );
@@ -31,7 +30,12 @@ void test1()
         fflush( stdout );
 
         ende->text( teststr );
-        string encstr = ende->encodedtext();
+        printf( "> encoding ... " );
+        fflush( stdout );
+        string encstr;
+        const char* rets = ende->encodedtext();
+        if ( rets != NULL )
+            encstr = rets;
         printf( "> encoded : %s\n", encstr.c_str() );
         fflush( stdout );
 
