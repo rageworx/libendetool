@@ -75,7 +75,11 @@ void EnDeTool::reset()
         origintext = NULL;
     }
 
-    return;
+    AES_ctx* aesctx = (AES_ctx*)cryptcontext;
+    if ( aesctx != NULL )
+    {
+        memset( aesctx, 0, sizeof( AES_ctx ) );
+    }
 }
 
 void EnDeTool::compress( bool enabled )
@@ -85,7 +89,7 @@ void EnDeTool::compress( bool enabled )
 
 long long EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 {
-    if ( src == NULL )
+    if ( ( src == NULL ) || ( srcsize == 0 ) )
         return -1;
 
     generateiv();

@@ -461,6 +461,7 @@ void AES_CBC_encrypt_buffer(struct AES_ctx *ctx, uint8_t* buf, uint32_t length)
 {
   uintptr_t i;
   uint8_t *Iv = ctx->Iv;
+  
   for (i = 0; i < length; i += AES_BLOCKLEN)
   {
     XorWithIv(buf, Iv);
@@ -477,6 +478,7 @@ void AES_CBC_decrypt_buffer(struct AES_ctx* ctx, uint8_t* buf,  uint32_t length)
 {
   uintptr_t i;
   uint8_t storeNextIv[AES_BLOCKLEN];
+  
   for (i = 0; i < length; i += AES_BLOCKLEN)
   {
     memcpy(storeNextIv, buf, AES_BLOCKLEN);
@@ -497,9 +499,9 @@ void AES_CBC_decrypt_buffer(struct AES_ctx* ctx, uint8_t* buf,  uint32_t length)
 void AES_CTR_xcrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, uint32_t length)
 {
   uint8_t buffer[AES_BLOCKLEN];
-  
   unsigned i;
   int bi;
+  
   for (i = 0, bi = AES_BLOCKLEN; i < length; ++i, ++bi)
   {
     if (bi == AES_BLOCKLEN) /* we need to regen xor compliment in buffer */

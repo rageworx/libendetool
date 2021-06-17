@@ -2,7 +2,7 @@
 #define _AES_H_
 
 /*
-    -- variable key length each 16, 24, 32 AES variant source,
+    -- AES for variable key length each 16, 24, 32 ( 128, 192, 256 bit )
     -- (C)2021 Raphael K,
 */
 
