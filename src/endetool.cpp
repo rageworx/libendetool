@@ -70,7 +70,7 @@ void EnDeTool::reset()
 
 int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
 {
-    if ( ( src == NULL ) || ( srcsize == 0 ) )
+    if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
         return -1;
 
     generateiv();
@@ -79,18 +79,13 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
                      (const uint8_t*)encryptkey ,
                      (const uint8_t*)encryptiv );
 
-    int tmpCiperLen  = srcsize + sizeof( unsigned int );
+    size_t tmpCiperLen  = srcsize + 4;
 
-    if ( tmpCiperLen > AES_BLOCKLEN )
+    if ( ( tmpCiperLen % AES_BLOCKLEN ) > 0 )
     {
         tmpCiperLen += AES_BLOCKLEN - ( tmpCiperLen % AES_BLOCKLEN );
-    }
-    else
-    {
-        // Minimal size equals AES_BLOCKLEN.
-        tmpCiperLen = AES_BLOCKLEN;
-    }
-
+    }    
+    
     if ( out != NULL )
     {
         delete[] out;
@@ -104,7 +99,7 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     }
 #endif
 
-    char* encptr = new char[ tmpCiperLen ];
+    uint8_t* encptr = new uint8_t[ tmpCiperLen ];
 
     if ( encptr == NULL )
     {
@@ -115,32 +110,26 @@ int  EnDeTool::encodebinary( const char* src, unsigned srcsize, char* &out )
     memcpy( encptr, &srcsize, 4 );
     memcpy( &encptr[4], src, srcsize );
 
-    int encloop = tmpCiperLen / AES_BLOCKLEN;
-    if ( encloop == 0 )
-    {
-        encloop = 1;
-    }
-
-    for ( int cnt=0; cnt<encloop; cnt++ )
+    size_t encloop = tmpCiperLen / AES_BLOCKLEN;
+    for ( size_t cnt=0; cnt<encloop; cnt++ )
     {
         AES_CBC_encrypt_buffer( actx,
-                                (uint8_t*)&encptr[ cnt*AES_BLOCKLEN ],
+                                &encptr[ cnt*AES_BLOCKLEN ],
                                 AES_BLOCKLEN );
     }
 
     out = (char*)encptr;
 
-    return tmpCiperLen;
+    return (int)tmpCiperLen;
 }
 
 int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
 {
-    if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN ) )
+    if ( ( src == NULL ) || ( srcsize < AES_BLOCKLEN + 4 ) )
         return -1;
 
 	char*           decbuff     = (char*)src;
-	unsigned        decbuffsz   = srcsize;
-	bool            need2free   = false;
+	size_t          decbuffsz   = srcsize;
     unsigned int    realsz      = 0;
 
 	// checks is it compressed ..
@@ -166,45 +155,36 @@ int  EnDeTool::decodebinary( const char* src, unsigned srcsize, char* &out )
     if ( decptr == NULL )
         return 0;
 
-    memset( decptr, 0, decbuffsz );
     memcpy( decptr, decbuff, decbuffsz );
 
-	if ( need2free == true )
-	{
-		delete[] decbuff;
-	}
-
-    int decloop = decbuffsz / AES_BLOCKLEN;
-
-    if ( decloop == 0 )
-    {
-        decloop = 1;
-    }
-
-    for (int cnt=0; cnt<decloop; cnt++ )
+    size_t decloop = decbuffsz / AES_BLOCKLEN;
+    for ( size_t cnt=0; cnt<decloop; cnt++ )
     {
         AES_CBC_decrypt_buffer( actx,
-                                &decptr[cnt * AES_BLOCKLEN],
+                                &decptr[ cnt*AES_BLOCKLEN ],
                                 AES_BLOCKLEN );
     }
 
-    memcpy( &realsz, &decptr[0], sizeof( unsigned int ) );
+    // copy real size of data in 4 byte.
+    memcpy( &realsz, decptr, 4 );
 
-    if ( realsz > decbuffsz )
+    if ( realsz > ( decbuffsz - 4 ) )
     {
         // this must be error case.
-        delete decptr;
+        delete[] decptr;
         return 0;
     }
 
     out = new char[ realsz ];
     if ( out == NULL )
     {
-        delete decptr;
+        delete[] decptr;
         return 0;
     }
 
-    memcpy( out, &decptr[sizeof(unsigned int)], realsz );
+    memcpy( out, &decptr[4], realsz );
+    
+    delete[] decptr;
 
     return (int)realsz;
 }

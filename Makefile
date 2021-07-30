@@ -1,5 +1,5 @@
 # Makefile for libendetool
-# (C)2016 ~ 2019 Raphael Kim / rageworx
+# (C)2016 ~ 2021 Raphael Kim / rageworx
 
 # To enable build for embedded linux, you may encomment next 2 lines.
 # CCPREPATH = ${ARM_LINUX_GCC_PATH}
@@ -13,28 +13,47 @@ CCPATH = ${CCPREFIX}
 GCC = ${CCPATH}gcc
 GPP = ${CCPATH}g++
 AR  = ${CCPATH}ar
+RL  = ${CCPATH}ranlib
 
 SOURCEDIR = ./src
 OUTDIR    = ./lib
 AES256DIR = ${SOURCEDIR}/aes256
 BASE64DIR = ${SOURCEDIR}/base64
+# LZMA may removed for next version -
 LZMATDIR  = ${SOURCEDIR}/lzmat
-OBJDIR    = ./obj/static
+OBJDIR    = ./obj
 OUTBIN    = libendetool.a
-DEFINEOPT = -D_GNU_SOURCE -DNOLZMAT
-OPTIMOPT  = -O2 -s
+DEFINEOPT = -D_GNU_SOURCE
+OPTIMOPT  = -O2 -fomit-frame-pointer
+#OPTIMOPT  =  -g3  -DDEBUG
 OPTADD    = 
+OPTARCH   =
 
-ifeq (windows,$(firstword $(MAKECMDGOALS)))
-OPTADD += -mwindows
+# Automatic detecting architecture.
+KRNL := $(shell uname -s)
+KVER := $(shell uname -r | cut -d . -f1)
+ARCH := $(shell uname -m)
+
+ifeq ($(KRNL),Darwin)
+	ifeq ($(shell test $(KVER) -gt 19; echo $$?),0)
+		OPTARCH += -arch x86_64 -arch arm64
+	endif
+else
+	SUBSYS := $(shell uname -s | cut -d _ -f1)
+	ifeq ($(SUBSYS),MINGW64)
+		OPTARCH += -mconsole -static
+	endif
 endif
 
-CFLAGS    = -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR) $(DEFINEOPT)
-LFLAGS    = $(OPTIMOPT) $(OPTADD)
+CFLAGS += -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR)
+CFLAGS += $(DEFINEOPT)
+CFLAGS += $(OPTARCH) $(OPTIMOPT)
+LFLAGS += $(OPTADD)
 
-all: prepare clean ${OUTDIR}/${OUTBIN}
+.PHONY: prepare clean test
 
-windows: all
+all: prepare ${OUTDIR}/${OUTBIN}
+cleanall: prepare clean ${OUTDIR}/${OUTBIN}
 
 prepare:
 	@mkdir -p ${OBJDIR}
@@ -54,11 +73,17 @@ ${OBJDIR}/endetool.o:
 
 ${OUTDIR}/${OUTBIN}: ${OBJDIR}/aes256.o ${OBJDIR}/base64.o ${OBJDIR}/endetool.o
 	@echo "Generating library ..."
-	@$(AR) -q $@ ${OBJDIR}/*.o
+	@$(AR) -cr $@ $^
+	@$(RL) $@
 	@cp -rf ${SOURCEDIR}/endetool.h ${OUTDIR}
+
+test: ${OUTDIR}/${OUTBIN} test/test.cpp
+	@echo "Compiling test ..."
+	@$(GPP) ${CFLAGS} test/test.cpp -Ilib -Llib -lendetool ${LFLAGS} -o test/endetest
 
 clean:
 	@echo "Cleaning ...."
 	@rm -rf ${OBJDIR}/*
 	@rm -rf ${OUTDIR}/${OUTBIN}
 	@rm -rf ${OUTDIR}/endetool.h
+	@rm -rf test/endetest.*
