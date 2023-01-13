@@ -36,6 +36,7 @@ ARCH := $(shell uname -m)
 ifeq ($(KRNL),Darwin)
     ifeq ($(shell test $(KVER) -gt 19; echo $$?),0)
         OPTARCH += -arch x86_64 -arch arm64
+        OPTARCH += -mmacosx-version-min=11.0
     endif
     SHAREDBIN = libendetool.dylib
 else
