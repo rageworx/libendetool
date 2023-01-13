@@ -35,14 +35,15 @@ KVER := $(shell uname -r | cut -d . -f1)
 ARCH := $(shell uname -m)
 
 ifeq ($(KRNL),Darwin)
-	ifeq ($(shell test $(KVER) -gt 19; echo $$?),0)
-		OPTARCH += -arch x86_64 -arch arm64
-	endif
+    ifeq ($(shell test $(KVER) -gt 19; echo $$?),0)
+        OPTARCH += -arch x86_64 -arch arm64
+        OPTARCH += -mmacosx-version-min=11.0
+    endif
 else
-	SUBSYS := $(shell uname -s | cut -d _ -f1)
-	ifeq ($(SUBSYS),MINGW64)
-		OPTARCH += -mconsole -static
-	endif
+    SUBSYS := $(shell uname -s | cut -d _ -f1)
+    ifeq ($(SUBSYS),MINGW64)
+        OPTARCH += -mconsole -static
+    endif
 endif
 
 CFLAGS += -I$(SOURCEDIR) -I$(AES256DIR) -I$(BASE64DIR) -I$(LZMATDIR)
